@@ -1,3 +1,17 @@
 *.sqlite3
 *.save
 *.pyc
+.vscode/
+.DS_Store
+package-lock.json
+/backend/logs
+/backend/media/*
+/backend/staticfiles/
+/frontend/node_modules
+raw-data*.json
+.env
+.env.*
+*.crt
+*.key
+/nginx/*.conf
+*.log
