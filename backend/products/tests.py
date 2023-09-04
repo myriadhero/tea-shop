@@ -161,3 +161,13 @@ class PTypePageTests(TestCase):
     def test_url_resolves_productdetailview(self):
         view = resolve(self.url)
         self.assertEqual(view.func.view_class, ProductTypeDetailView)
+
+
+class AllProductsPageTests(TestCase):
+    # TODO: test this page!
+    pass
+
+
+class FeaturedProductsPageTests(TestCase):
+    # TODO: test this page!
+    pass

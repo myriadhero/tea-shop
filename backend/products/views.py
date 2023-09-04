@@ -28,3 +28,6 @@ class ProductDetailView(DetailView):
     template_name = "products/product_detail.html"
     context_object_name = "product"
     model = Product
+
+class FeaturedProductsView(TemplateView):
+    template_name = "featured.html"
