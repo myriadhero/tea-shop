@@ -1,0 +1,15 @@
+{% extends '_base.html' %}
+
+{% block title %}{{ ptype.name }}{% endblock title %}
+
+{% block content %}
+<h1>{{ ptype.name }}</h1>
+<p>{{ ptype.description }}</p>
+
+<ul>
+    {% for product in ptype.product_set.all %}
+    <li><a href="{{ product.get_absolute_url }}">{{ product.name }}</a></li>
+    {% endfor %}
+</ul>
+
+{% endblock content %}

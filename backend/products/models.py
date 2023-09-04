@@ -7,6 +7,12 @@ class Category(models.Model):
     description = models.TextField()
     slug = models.SlugField(unique=True, help_text="Must be unique.")
 
+    def get_absolute_url(self):
+        return reverse(
+            "products_by_category",
+            kwargs={"slug": self.slug},
+        )
+
 
 class ProductType(models.Model):
     name = models.CharField(
@@ -15,6 +21,12 @@ class ProductType(models.Model):
     )
     description = models.TextField()
     slug = models.SlugField(unique=True, help_text="Must be unique.")
+
+    def get_absolute_url(self):
+        return reverse(
+            "products_by_type",
+            kwargs={"slug": self.slug},
+        )
 
 
 class Product(models.Model):
@@ -32,6 +44,6 @@ class Product(models.Model):
 
     def get_absolute_url(self):
         return reverse(
-            "product",
+            "product_details",
             kwargs={"product_type": self.product_type.slug, "slug": self.slug},
         )
