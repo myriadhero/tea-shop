@@ -2,7 +2,13 @@ from django.test import TestCase
 from django.urls import resolve, reverse
 
 from .models import Category, Product, ProductType
-from .views import CategoryDetailView, ProductDetailView, ProductTypeDetailView
+from .views import (
+    AllProductsView,
+    CategoryDetailView,
+    FeaturedProductsView,
+    ProductDetailView,
+    ProductTypeDetailView,
+)
 
 
 class ProductPageTests(TestCase):
@@ -164,10 +170,36 @@ class PTypePageTests(TestCase):
 
 
 class AllProductsPageTests(TestCase):
-    # TODO: test this page!
-    pass
+    def setUp(self) -> None:
+        url = reverse("all_products")
+        self.response = self.client.get(url)
+
+    def test_url_exists_at_correct_location(self):
+        self.assertEqual(self.response.status_code, 200)
+
+    def test_all_products_template(self):
+        self.assertTemplateUsed(self.response, "products/all_products.html")
+        self.assertContains(self.response, "All categories, types, products")
+        self.assertNotContains(self.response, "Cats")
+
+    def test_all_products_url_resolves_homepageview(self):
+        view = resolve("/shop/")
+        self.assertEqual(view.func.view_class, AllProductsView)
 
 
 class FeaturedProductsPageTests(TestCase):
-    # TODO: test this page!
-    pass
+    def setUp(self) -> None:
+        url = reverse("featured_products")
+        self.response = self.client.get(url)
+
+    def test_url_exists_at_correct_location(self):
+        self.assertEqual(self.response.status_code, 200)
+
+    def test_featured_products_template(self):
+        self.assertTemplateUsed(self.response, "products/featured.html")
+        self.assertContains(self.response, "featured tea")
+        self.assertNotContains(self.response, "Cats")
+
+    def test_featured_products_url_resolves_homepageview(self):
+        view = resolve("/tea-of-the-month/")
+        self.assertEqual(view.func.view_class, FeaturedProductsView)

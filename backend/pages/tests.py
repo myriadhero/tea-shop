@@ -17,7 +17,7 @@ class HomePageTests(SimpleTestCase):
         self.assertContains(self.response, "Woohoo")
         self.assertNotContains(self.response, "Cats")
 
-    def test_homepage_url_resolves_homepageview(self):  # new
+    def test_homepage_url_resolves_homepageview(self):
         view = resolve("/")
         self.assertEqual(view.func.view_class, HomePageView)
 
@@ -35,6 +35,6 @@ class AboutPageTests(SimpleTestCase):
         self.assertContains(self.response, "Yes dis dog")
         self.assertNotContains(self.response, "Cats")
 
-    def test_url_resolves_aboutpageview(self):  # new
+    def test_url_resolves_aboutpageview(self):
         view = resolve("/about/")
         self.assertEqual(view.func.view_class, AboutPageView)
