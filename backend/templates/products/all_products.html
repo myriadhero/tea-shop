@@ -4,4 +4,13 @@
 
 {% block content %}
 <h1>All categories, types, products go here</h1>
+
+{% for product in products %}
+<div>
+    <h3>{{ product.name }}</h3>
+    <span>{{ product.product_type.name }} {% for cat in product.categories.all %}{{ cat.name }} {% endfor %}</span>
+    <p>{{ product.description }}</p>
+    <button type="button">Add to Cart</button>
+</div>
+{% endfor %}
 {% endblock content %}

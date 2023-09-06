@@ -23,4 +23,5 @@ urlpatterns = [
     path("", include("pages.urls")),
     path("shop/", include("products.urls")),
     path("tea-of-the-month/", FeaturedProductsView.as_view(), name="featured_products"),
+    path("cart/", include("cart.urls")),
 ]
