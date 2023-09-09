@@ -1,9 +1,15 @@
 from django.contrib.auth import get_user_model
 from django.contrib.sessions.models import Session
-from django.db import models
+from django.db import models, transaction
 from products.models import Product
 
 User = get_user_model()
+
+
+# TODO: when a user is auth'ed,
+# - if they have session cart
+#  -- if no user cart - convert session cart to user cart
+#  -- if they have user cart - merge and remove session cart
 
 
 class Cart(models.Model):
@@ -24,13 +30,23 @@ class Cart(models.Model):
             )
         ]
 
-    # TODO: when a user is auth'ed,
-    # - if they have session cart
-    #  -- and if they have user cart already, add session cart to user cart?
-    # when the user is logged out, do we want to show empty cart?
-    # i guess i could just have 2 carts in a scenario where user keeps 
-    # logging in and out
-    # and prioritise the user cart 
+    @transaction.atomic
+    def get_merged_cart(self, another_cart):
+        if not another_cart:
+            return self
+        
+        for another_cart_item in self.cart_item_set.all():
+            if user_cart_item := self.cart_item_set.filter(
+                product=another_cart_item.product
+            ).first():
+                user_cart_item.quantity += another_cart_item.quantity
+                user_cart_item.save()
+            else:
+                another_cart_item.cart = self
+                another_cart_item.save()
+
+        another_cart.delete()
+        return self
 
 
 class CartItem(models.Model):
