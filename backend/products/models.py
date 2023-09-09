@@ -13,6 +13,9 @@ class Category(models.Model):
             kwargs={"slug": self.slug},
         )
 
+    def __str__(self) -> str:
+        return self.name
+
 
 class ProductType(models.Model):
     name = models.CharField(
@@ -27,6 +30,9 @@ class ProductType(models.Model):
             "products_by_type",
             kwargs={"slug": self.slug},
         )
+
+    def __str__(self) -> str:
+        return self.name
 
 
 class Product(models.Model):
@@ -47,3 +53,6 @@ class Product(models.Model):
             "product_details",
             kwargs={"product_type": self.product_type.slug, "slug": self.slug},
         )
+
+    def __str__(self) -> str:
+        return self.name

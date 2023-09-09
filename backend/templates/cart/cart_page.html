@@ -4,4 +4,12 @@
 
 {% block content %}
 <h1>Did someone say treats??!</h1>
+
+{% if cart %}
+{% for cart_item in cart.cartitem_set.all %}
+<h3>{{ cart_item.product.name }}: {{ cart_item.quantity }}</h3>
+{% endfor %}
+{% else %}
+<h3>No items in cart 🛒</h3>
+{% endif %}
 {% endblock content %}
