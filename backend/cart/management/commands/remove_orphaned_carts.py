@@ -1,14 +1,9 @@
 from typing import Any, Optional
 
 from cart.models import Cart
-from django.conf import settings
 from django.contrib.sessions.models import Session
 from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
-
-# from importlib import import_module
-# from django.conf import settings
-# SessionStore = import_module(settings.SESSION_ENGINE).SessionStore
 
 
 class Command(BaseCommand):
