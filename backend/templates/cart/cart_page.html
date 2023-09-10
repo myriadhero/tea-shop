@@ -7,7 +7,8 @@
 
 {% if cart %}
 {% for cart_item in cart.cartitem_set.all %}
-<h3>{{ cart_item.product.name }}: {{ cart_item.quantity }}</h3>
+    <h3>{{ cart_item.product.name }}</h3>
+    {% include 'cart/product_add_form.html' %}
 {% endfor %}
 {% else %}
 <h3>No items in cart 🛒</h3>

@@ -6,8 +6,10 @@ name = "pypi"
 [packages]
 django = "*"
 tzdata = "*"
+django-crispy-forms = "*"
 
 [dev-packages]
+django-debug-toolbar = "*"
 
 [requires]
 python_version = "3.11"

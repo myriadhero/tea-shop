@@ -10,6 +10,8 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+# TODO: replace this with getenv library
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -25,8 +27,20 @@ SECRET_KEY = "django-insecure-w1=ulwq^^v-j^lz!*!oos%!3!aorqr-o0pv*xqbuk2ulbd+s)x
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
 
+ALLOWED_HOSTS = (
+    allowed_hosts_env.split(",")
+    if (allowed_hosts_env := os.environ.get("DJANGO_ALLOWED_HOSTS"))
+    else [
+        "localhost",
+        "127.0.0.1",
+    ]
+)
+if DEBUG:
+    INTERNAL_IPS = [
+        "localhost",
+        "127.0.0.1",
+    ]
 
 # Application definition
 
@@ -42,7 +56,14 @@ INSTALLED_APPS = [
     "pages.apps.PagesConfig",
     "products.apps.ProductsConfig",
     "cart.apps.CartConfig",
+    # third party
+    "crispy_forms",
 ]
+if DEBUG:
+    INSTALLED_APPS.append("debug_toolbar")
+    import mimetypes
+
+    mimetypes.add_type("application/javascript", ".js", True)
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -53,6 +74,8 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+if DEBUG:
+    MIDDLEWARE.insert(3, "debug_toolbar.middleware.DebugToolbarMiddleware")
 
 ROOT_URLCONF = "TeaShop.urls"
 
@@ -121,7 +144,17 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
+STATICFILES_DIRS = [BASE_DIR / "static"]
+STATICFILES_STORAGE = (
+    "django.contrib.staticfiles.storage.ManifestStaticFilesStorage"
+    if not DEBUG
+    else "django.contrib.staticfiles.storage.StaticFilesStorage"
+)
 STATIC_URL = "static/"
+STATIC_ROOT = os.environ.get("STATICFILES_DIR") or BASE_DIR / "staticfiles"
+
+MEDIA_URL = "media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

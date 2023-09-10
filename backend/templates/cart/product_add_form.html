@@ -1,0 +1,15 @@
+
+{% comment %} cart_item object {% endcomment %}
+<form action="{% url 'cart_page' %}" method="post">
+    {% csrf_token %}
+    <input type="hidden" name="product_slug" value="{{ cart_item.product.slug }}">
+    <input type="hidden" name="set_quantity" value="true">
+    <input type="number" name="quantity" value={{ cart_item.quantity }}>
+    <input type="submit" value="Update">
+</form>
+<form action="{% url 'cart_page' %}" method="post">
+    {% csrf_token %}
+    <input type="hidden" name="product_slug" value="{{ cart_item.product.slug }}">
+    <input type="hidden" name="remove_from_cart" value="true">
+    <input type="submit" value="🚮">
+</form>

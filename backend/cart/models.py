@@ -1,4 +1,4 @@
-from typing import Optional, Self
+from typing import Any, Optional, Self
 
 from django.contrib.auth import get_user_model
 from django.db import models, transaction
@@ -6,10 +6,6 @@ from django.http import HttpRequest
 from products.models import Product
 
 User = get_user_model()
-
-
-class SessionCart:
-    pass
 
 
 class Cart(models.Model):
@@ -26,6 +22,11 @@ class Cart(models.Model):
             existing_cart_item.save()
         else:
             CartItem.objects.create(cart=self, product=product, quantity=quantity)
+
+    def remove_product(self, product: Product):
+        existing_cart_item = self.cartitem_set.filter(product=product).first()
+        if existing_cart_item:
+            existing_cart_item.delete()
 
     @transaction.atomic
     def merge_another(self, another_cart) -> Self:
@@ -46,10 +47,10 @@ class Cart(models.Model):
         return self
 
     def __str__(self) -> str:
-        return f"{self.session or self.user} Cart"
+        return f"{self.user or 'Session'+self.id} Cart"
 
     @staticmethod
-    def get_request_cart(request: HttpRequest) -> Optional[Self]:
+    def get_request_cart(request: HttpRequest, create_cart=False) -> Optional[Self]:
         # session/cart items are added/created on POST
         # user may or may not have session or be logged in
         session_cart_id = request.session.get("cart_id")
@@ -58,6 +59,10 @@ class Cart(models.Model):
             session_cart = Cart.objects.filter(pk=session_cart_id).first()
 
         if not request.user.is_authenticated:
+            if not session_cart and create_cart:
+                session_cart = Cart.objects.create()
+                request.session["cart_id"] = session_cart.id
+
             return session_cart
 
         # assume user is authenticated from this point
@@ -66,12 +71,18 @@ class Cart(models.Model):
         except User.cart.RelatedObjectDoesNotExist:
             user_cart = None
 
-        if session_cart and not user_cart:
-            user_cart = Cart.objects.create(user=request.user)
+        if session_cart:
+            if user_cart:
+                user_cart.merge_another(session_cart)
+            else:
+                user_cart = session_cart
+                user_cart.user = request.user
+                user_cart.save()
 
-        if user_cart:
-            user_cart.merge_another(session_cart)
             request.session.pop("cart_id", None)
+
+        if not user_cart and create_cart:
+            user_cart = Cart.objects.create(user=request.user)
 
         return user_cart
 
@@ -95,6 +106,14 @@ class CartItem(models.Model):
             self.delete()
         else:
             return super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs) -> tuple[int, dict[str, int]]:
+        cart_item_id = self.id
+        cart = self.cart
+        delete_results = super().delete(*args, **kwargs)
+        if not cart.cartitem_set.exclude(id=cart_item_id).exists():
+            cart.delete()
+        return delete_results
 
     def __str__(self) -> str:
         return f"{self.cart} Item: {self.product}, {self.quantity}"
