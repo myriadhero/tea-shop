@@ -14,6 +14,7 @@ class Cart(models.Model):
     def add_product(
         self, product: Product, quantity: int = 1, set_quantity: bool = False
     ) -> None:
+        # TODO: add quantity availability checks
         existing_cart_item = self.cartitem_set.filter(product=product).first()
         if existing_cart_item:
             existing_cart_item.quantity = (
