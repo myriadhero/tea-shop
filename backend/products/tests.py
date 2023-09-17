@@ -96,7 +96,7 @@ class CategoryPageTests(TestCase):
     def test_url_exists_at_correct_location(self):
         self.assertEqual(self.response.status_code, 200)
 
-    def test_product_detail_template(self):
+    def test_category_template(self):
         self.assertTemplateUsed(self.response, "products/by_category.html")
         self.assertContains(self.response, self.category.name)
         self.assertContains(self.response, self.product1.name)
@@ -104,7 +104,7 @@ class CategoryPageTests(TestCase):
         self.assertNotContains(self.response, self.unrelated_product.name)
         self.assertNotContains(self.response, "cats")
 
-    def test_url_resolves_productdetailview(self):
+    def test_url_resolves_categorydetailview(self):
         view = resolve(self.url)
         self.assertEqual(view.func.view_class, CategoryDetailView)
 
@@ -156,7 +156,7 @@ class PTypePageTests(TestCase):
     def test_url_exists_at_correct_location(self):
         self.assertEqual(self.response.status_code, 200)
 
-    def test_product_detail_template(self):
+    def test_product_type_template(self):
         self.assertTemplateUsed(self.response, "products/by_type.html")
         self.assertContains(self.response, self.ptype.name)
         self.assertContains(self.response, self.product1.name)
@@ -164,7 +164,7 @@ class PTypePageTests(TestCase):
         self.assertNotContains(self.response, self.unrelated_product)
         self.assertNotContains(self.response, "cats")
 
-    def test_url_resolves_productdetailview(self):
+    def test_url_resolves_producttypeview(self):
         view = resolve(self.url)
         self.assertEqual(view.func.view_class, ProductTypeDetailView)
 
@@ -182,7 +182,7 @@ class AllProductsPageTests(TestCase):
         self.assertContains(self.response, "All categories, types, products")
         self.assertNotContains(self.response, "Cats")
 
-    def test_all_products_url_resolves_homepageview(self):
+    def test_all_products_url_resolves_allproductspageview(self):
         view = resolve("/shop/")
         self.assertEqual(view.func.view_class, AllProductsView)
 
@@ -200,6 +200,6 @@ class FeaturedProductsPageTests(TestCase):
         self.assertContains(self.response, "featured tea")
         self.assertNotContains(self.response, "Cats")
 
-    def test_featured_products_url_resolves_homepageview(self):
+    def test_featured_products_url_resolves_featuredproductsview(self):
         view = resolve("/tea-of-the-month/")
         self.assertEqual(view.func.view_class, FeaturedProductsView)
