@@ -4,7 +4,7 @@
     {% csrf_token %}
     <input type="hidden" name="product_slug" value="{{ cart_item.product.slug }}">
     <input type="hidden" name="set_quantity" value="true">
-    <input type="number" name="quantity" value={{ cart_item.quantity }}>
+    <input type="number" name="quantity" value={{ cart_item.quantity }} min="1">
     <input type="submit" value="Update">
 </form>
 <form action="{% url 'cart_page' %}" method="post">

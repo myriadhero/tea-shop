@@ -1,4 +1,4 @@
-from typing import Any, Optional, Self
+from typing import Optional, Self
 
 from django.contrib.auth import get_user_model
 from django.db import models, transaction
@@ -15,7 +15,7 @@ class Cart(models.Model):
         self, product: Product, quantity: int = 1, set_quantity: bool = False
     ) -> None:
         # TODO: add quantity availability checks
-        existing_cart_item = self.cartitem_set.filter(product=product).first()
+        existing_cart_item: CartItem = self.cartitem_set.filter(product=product).first()
         if existing_cart_item:
             existing_cart_item.quantity = (
                 quantity if set_quantity else existing_cart_item.quantity + quantity
@@ -99,14 +99,13 @@ class CartItem(models.Model):
                 fields=["cart", "product"],
                 name="One unique product per cart",
                 violation_error_message="There can't be more than one of the same product in a cart, add quantity instead.",
-            )
+            ),
+            models.CheckConstraint(
+                check=models.Q(quantity__gt=0),
+                name="Quantity can't be 0",
+                violation_error_message="Cart item quantity can't be 0 or less, use delete instead.",
+            ),
         ]
-
-    def save(self, *args, **kwargs):
-        if self.quantity <= 0:
-            self.delete()
-        else:
-            return super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs) -> tuple[int, dict[str, int]]:
         cart_item_id = self.id

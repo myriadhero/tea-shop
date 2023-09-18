@@ -6,6 +6,7 @@ from products.models import Category, Product, ProductType
 from .models import Cart, CartItem
 from .views import CartPageView
 
+User = get_user_model()
 UNAME = "doggoteamaster"
 UEMAIL = "dtm@alldoggos.com"
 UPWORD = "randomPw@rd12!"
@@ -49,7 +50,7 @@ class CartPageTests(TestCase):
             slug="golden-sultan-turban",
         )
 
-        self.user = get_user_model().objects.create_superuser(
+        self.user = User.objects.create_user(
             username=UNAME,
             email=UEMAIL,
             password=UPWORD,
@@ -95,7 +96,7 @@ class CartPageTests(TestCase):
             {
                 "product_slug": "golden-sultan-turban",
                 "set_quantity": True,
-                "quantity": 15,
+                "quantity": 33,
             },
         )
         self.assertTrue(
@@ -103,20 +104,207 @@ class CartPageTests(TestCase):
         )
         self.assertEqual(cart.cartitem_set.count(), 2)
 
+        response = self.client.get(self.url)
+        self.assertContains(response, "The best oolong tea")
+        self.assertContains(response, "15")
+        self.assertContains(response, "Golden Sultan Turban")
+        self.assertContains(response, "33")
+        self.assertNotContains(response, self.product2.name)
+
+        # test setting invalid number
+        self.client.post(
+            self.url,
+            {"product_slug": "best-oolong", "set_quantity": True, "quantity": 0},
+        )
+        self.assertEqual(cart.cartitem_set.count(), 2)
+        self.assertEqual(
+            cart.cartitem_set.filter(product__slug="best-oolong").first().quantity,
+            15,
+        )
+        self.client.post(
+            self.url,
+            {"product_slug": "best-oolong", "set_quantity": True, "quantity": -300},
+        )
+        self.assertEqual(cart.cartitem_set.count(), 2)
+        self.assertEqual(
+            cart.cartitem_set.filter(product__slug="best-oolong").first().quantity,
+            15,
+        )
+
+        # test removing items
+        self.client.post(
+            self.url,
+            {"product_slug": "best-oolong", "remove_from_cart": True},
+        )
+        self.assertEqual(cart.cartitem_set.count(), 1)
+        self.assertTrue(
+            cart.cartitem_set.filter(product__slug="golden-sultan-turban").exists()
+        )
+        self.assertFalse(CartItem.objects.filter(product__slug="best-oolong").exists())
+        self.client.post(
+            self.url,
+            {
+                "product_slug": "golden-sultan-turban",
+                "set_quantity": True,
+                "quantity": 12,
+                "remove_from_cart": True,
+            },
+        )
+        self.assertFalse(Cart.objects.exists())
+        self.assertFalse(CartItem.objects.exists())
+        self.assertContains(self.client.get(self.url), "No items in cart 🛒")
+
     def test_user_cart(self):
+        self.assertContains(self.response, "No items in cart 🛒")
         self.client.login(username=UNAME, password=UPWORD)
         # test empty cart
-        self.assertContains(self.response, "No items in cart 🛒")
+        self.assertContains(self.client.get(self.url), "No items in cart 🛒")
         # test add to cart
-        raise NotImplementedError
+        self.client.post(self.url, {"product_slug": "best-oolong"})
+        cart_id = self.client.session.get("cart_id", None)
+        self.assertIsNone(cart_id)
+
+        cart: Cart = self.user.cart
+        self.assertTrue(cart.cartitem_set.exists())
+        self.assertEqual(cart.cartitem_set.first().product.name, "The best oolong tea")
+
+        self.client.post(self.url, {"product_slug": "best-oolong"})
+        self.assertEqual(cart.cartitem_set.first().quantity, 2)
+
+        self.client.post(
+            self.url,
+            {"product_slug": "best-oolong", "set_quantity": True, "quantity": 15},
+        )
+        self.assertEqual(cart.cartitem_set.first().quantity, 15)
+
+        self.client.post(
+            self.url,
+            {
+                "product_slug": "golden-sultan-turban",
+                "set_quantity": True,
+                "quantity": 33,
+            },
+        )
+        self.assertTrue(
+            cart.cartitem_set.filter(product__slug="golden-sultan-turban").exists()
+        )
+        self.assertEqual(cart.cartitem_set.count(), 2)
+
+        response = self.client.get(self.url)
+        self.assertContains(response, "The best oolong tea")
+        self.assertContains(response, "15")
+        self.assertContains(response, "Golden Sultan Turban")
+        self.assertContains(response, "33")
+        self.assertNotContains(response, self.product2.name)
+
+        # test cart appears empty when logging out
+        self.client.logout()
+        self.assertContains(self.client.get(self.url), "No items in cart 🛒")
+
+        # test that the cart is persistent when logging back in
+        self.client.login(username=UNAME, password=UPWORD)
+
+        # test setting invalid number
+        self.client.post(
+            self.url,
+            {"product_slug": "best-oolong", "set_quantity": True, "quantity": 0},
+        )
+        self.assertEqual(cart.cartitem_set.count(), 2)
+        self.assertEqual(
+            cart.cartitem_set.filter(product__slug="best-oolong").first().quantity,
+            15,
+        )
+        self.client.post(
+            self.url,
+            {"product_slug": "best-oolong", "set_quantity": True, "quantity": -300},
+        )
+        self.assertEqual(cart.cartitem_set.count(), 2)
+        self.assertEqual(
+            cart.cartitem_set.filter(product__slug="best-oolong").first().quantity,
+            15,
+        )
+
+        # test removing items
+        self.client.post(
+            self.url,
+            {"product_slug": "best-oolong", "remove_from_cart": True},
+        )
+        self.assertEqual(cart.cartitem_set.count(), 1)
+        self.assertTrue(
+            cart.cartitem_set.filter(product__slug="golden-sultan-turban").exists()
+        )
+        self.assertFalse(CartItem.objects.filter(product__slug="best-oolong").exists())
+        self.client.post(
+            self.url,
+            {
+                "product_slug": "golden-sultan-turban",
+                "set_quantity": True,
+                "quantity": 12,
+                "remove_from_cart": True,
+            },
+        )
+        self.assertFalse(Cart.objects.exists())
+        self.assertFalse(CartItem.objects.exists())
+        self.assertContains(self.client.get(self.url), "No items in cart 🛒")
 
     def test_session_to_user_merge_cart(self):
-        # test empty cart
         # test add to cart
-        raise NotImplementedError
+        self.client.post(
+            self.url,
+            {"product_slug": "best-oolong", "set_quantity": True, "quantity": 15},
+        )
+        self.client.post(
+            self.url,
+            {
+                "product_slug": "golden-sultan-turban",
+                "set_quantity": True,
+                "quantity": 33,
+            },
+        )
 
-    def test_remove_from_cart(self):
-        raise NotImplementedError
+        cart_id = self.client.session.get("cart_id", None)
+        cart: Cart = Cart.objects.get(pk=cart_id)
+
+        self.client.login(username=UNAME, password=UPWORD)
+        response = self.client.get(self.url)
+
+        self.assertEqual(cart, self.user.cart)
+        self.assertIsNone(self.client.session.get("cart_id", None))
+        self.assertEqual(cart.cartitem_set.count(), 2)
+
+        self.assertContains(response, "The best oolong tea")
+        self.assertContains(response, "15")
+        self.assertContains(response, "Golden Sultan Turban")
+        self.assertContains(response, "33")
+        self.assertNotContains(response, self.product2.name)
+
+        # test merge to filled user cart
+        self.client.logout()
+        self.client.post(
+            self.url,
+            {"product_slug": "best-oolong"},
+        )
+        self.client.post(
+            self.url,
+            {"product_slug": "not-best-oolong", "set_quantity": True, "quantity": 9},
+        )
+        response = self.client.get(self.url)
+        self.assertContains(response, "The best oolong tea")
+        self.assertContains(response, "1")
+        self.assertContains(response, "Inferior oolong tea")
+        self.assertContains(response, "9")
+
+        self.client.login(username=UNAME, password=UPWORD)
+        response = self.client.get(self.url)
+
+        self.assertContains(response, "The best oolong tea")
+        self.assertContains(response, "16")
+        self.assertContains(response, "Inferior oolong tea")
+        self.assertContains(response, "9")
+        self.assertContains(response, "Golden Sultan Turban")
+        self.assertContains(response, "33")
+
+        self.assertEqual(Cart.objects.count(), 1)
 
     def test_out_of_stock(self):
         raise NotImplementedError
