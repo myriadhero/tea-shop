@@ -21,7 +21,7 @@ addressElement.mount("#address-element");
 paymentElement.mount("#payment-element");
 
 // The items the customer wants to buy
-const items = [{ id: "xl-tshirt" }];
+// const items = [{ id: "xl-tshirt" }];
 
 // initialize();
 checkStatus();
@@ -30,28 +30,7 @@ document
   .querySelector("#payment-form")
   .addEventListener("submit", handleSubmit);
 
-// Fetches a payment intent and captures the client secret
-// async function initialize() {
-//   const response = await fetch("/create-payment-intent", {
-//     method: "POST",
-//     headers: { "Content-Type": "application/json" },
-//     body: JSON.stringify({ items }),
-//   });
-//   const { clientSecret } = await response.json();
 
-//   const appearance = {
-//     theme: "stripe",
-//   };
-//   elements = stripe.elements({ appearance, clientSecret });
-//   //
-
-//   const paymentElementOptions = {
-//     layout: "tabs",
-//   };
-
-//   const paymentElement = elements.create("payment", paymentElementOptions);
-//   paymentElement.mount("#payment-element");
-// }
 
 async function handleSubmit(e) {
   e.preventDefault();
@@ -134,3 +113,27 @@ function setLoading(isLoading) {
     document.querySelector("#button-text").classList.remove("hidden");
   }
 }
+
+
+// Fetches a payment intent and captures the client secret
+// async function initialize() {
+//   const response = await fetch("/create-payment-intent", {
+//     method: "POST",
+//     headers: { "Content-Type": "application/json" },
+//     body: JSON.stringify({ items }),
+//   });
+//   const { clientSecret } = await response.json();
+
+//   const appearance = {
+//     theme: "stripe",
+//   };
+//   elements = stripe.elements({ appearance, clientSecret });
+//   //
+
+//   const paymentElementOptions = {
+//     layout: "tabs",
+//   };
+
+//   const paymentElement = elements.create("payment", paymentElementOptions);
+//   paymentElement.mount("#payment-element");
+// }

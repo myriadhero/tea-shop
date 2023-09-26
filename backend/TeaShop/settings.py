@@ -168,3 +168,4 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # TODO: store these as env variables and/or in admin as secure field
 STRIPE_SECRET_KEY = env.str("STRIPE_SECRET_KEY")
 STRIPE_PUBLIC_KEY = env.str("STRIPE_PUBLIC_KEY")
+STRIPE_WEBHOOK_SECRET = env.str("STRIPE_WEBHOOK_SECRET")

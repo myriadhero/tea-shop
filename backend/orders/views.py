@@ -3,7 +3,7 @@ from typing import Any
 import stripe
 from cart.models import Cart
 from django.conf import settings
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.views import View
 from django.views.generic import TemplateView
 
@@ -35,3 +35,28 @@ class OrderPageView(TemplateView):
 class CheckoutDetailsUpdateView(View):
     def post(self, request: HttpRequest):
         pass
+
+
+class StripeWebhookView(View):
+    def post(self, request: HttpRequest):
+        event = None
+        payload = request.data
+        sig_header = request.headers["STRIPE_SIGNATURE"]
+
+        try:
+            event = stripe.Webhook.construct_event(payload, sig_header, settings.STRIPE_WEBHOOK_SECRET)
+        except ValueError as e:
+            # Invalid payload
+            raise e
+        except stripe.error.SignatureVerificationError as e:
+            # Invalid signature
+            raise e
+
+        # Handle the event
+        if event["type"] == "payment_intent.succeeded":
+            payment_intent = event["data"]["object"]
+            # ... handle other event types
+        else:
+            print("Unhandled event type {}".format(event["type"]))
+
+        return JsonResponse(success=True)
