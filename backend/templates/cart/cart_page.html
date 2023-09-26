@@ -10,6 +10,8 @@
     <h3>{{ cart_item.product.name }}</h3>
     {% include 'cart/product_add_form.html' %}
 {% endfor %}
+
+<a class="button" href="{% url "checkout" %}">Checkout</a>
 {% else %}
 <h3>No items in cart 🛒</h3>
 {% endif %}

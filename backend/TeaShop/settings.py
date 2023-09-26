@@ -10,32 +10,35 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
-# TODO: replace this with getenv library
-import os
 from pathlib import Path
+
+import environ
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+env = environ.Env(
+    DEBUG=(bool, False),
+    DJANGO_SECRET_KEY=(
+        str,
+        "django-insecure-w1=ulwq^^v-j^lz!*!oos%!3!aorqr-o0pv*xqbuk2ulbd+s)x",
+    ),
+    STATICFILES_ROOT_DIR=(Path, BASE_DIR / "staticfiles"),
+    DJANGO_ALLOWED_HOSTS=(tuple, ("localhost", "127.0.0.1")),
+)
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-w1=ulwq^^v-j^lz!*!oos%!3!aorqr-o0pv*xqbuk2ulbd+s)x"
+SECRET_KEY = env.str("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env.bool("DEBUG")
 
+ALLOWED_HOSTS = env.tuple("DJANGO_ALLOWED_HOSTS")
 
-ALLOWED_HOSTS = (
-    allowed_hosts_env.split(",")
-    if (allowed_hosts_env := os.environ.get("DJANGO_ALLOWED_HOSTS"))
-    else [
-        "localhost",
-        "127.0.0.1",
-    ]
-)
 if DEBUG:
     INTERNAL_IPS = [
         "localhost",
@@ -56,6 +59,7 @@ INSTALLED_APPS = [
     "pages.apps.PagesConfig",
     "products.apps.ProductsConfig",
     "cart.apps.CartConfig",
+    "orders.apps.OrdersConfig",
     # third party
     "crispy_forms",
 ]
@@ -151,7 +155,7 @@ STATICFILES_STORAGE = (
     else "django.contrib.staticfiles.storage.StaticFilesStorage"
 )
 STATIC_URL = "static/"
-STATIC_ROOT = os.environ.get("STATICFILES_DIR") or BASE_DIR / "staticfiles"
+STATIC_ROOT = env.path("STATICFILES_ROOT_DIR")
 
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
@@ -160,3 +164,7 @@ MEDIA_ROOT = BASE_DIR / "media"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# TODO: store these as env variables and/or in admin as secure field
+STRIPE_SECRET_KEY = env.str("STRIPE_SECRET_KEY")
+STRIPE_PUBLIC_KEY = env.str("STRIPE_PUBLIC_KEY")

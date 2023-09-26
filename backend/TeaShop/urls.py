@@ -18,12 +18,20 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
+from orders.views import OrderPageView
 from products.views import FeaturedProductsView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("pages.urls")),
     path("shop/cart/", include("cart.urls")),
+    path(
+        # TODO: rethink the checkout/orders urls
+        "shop/checkout/",
+        OrderPageView.as_view(),
+        name="checkout",
+    ),
+    path("shop/orders/", include("orders.urls")),
     path("shop/", include("products.urls")),
     path("tea-of-the-month/", FeaturedProductsView.as_view(), name="featured_products"),
 ]
