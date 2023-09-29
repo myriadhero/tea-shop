@@ -30,17 +30,36 @@ document
   .querySelector("#payment-form")
   .addEventListener("submit", handleSubmit);
 
-
-
 async function handleSubmit(e) {
   e.preventDefault();
   setLoading(true);
+
+  const form = e.target;
+  // TODO: handle invalid email
+  // const email = form.querySelector("#order_email").value;
+  const data = new FormData(e.target);
+
+  let { complete, value } = await addressElement.getValue();
+
+  if (!complete) {
+    setLoading(false);
+    showMessage("The address is not complete.");
+    return;
+  }
+  const address = value;
+  data.append("order_address", address);
+
+  // send user data to server (but not financial data!)
+  const serverResponse = await fetch("/shop/orders/order-details/", {
+    method: "post",
+    body: data,
+  });
 
   const { error } = await stripe.confirmPayment({
     elements,
     confirmParams: {
       // Make sure to change this to your payment completion page
-      return_url: "http://localhost:8000/checkout/success/",
+      return_url: "http://localhost:8000/shop/orders/success/",
     },
   });
 
@@ -113,7 +132,6 @@ function setLoading(isLoading) {
     document.querySelector("#button-text").classList.remove("hidden");
   }
 }
-
 
 // Fetches a payment intent and captures the client secret
 // async function initialize() {

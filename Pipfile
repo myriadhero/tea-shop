@@ -9,6 +9,7 @@ tzdata = "*"
 django-crispy-forms = "*"
 stripe = "*"
 django-environ = "*"
+django-money = "*"
 
 [dev-packages]
 django-debug-toolbar = "*"

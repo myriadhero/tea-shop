@@ -40,6 +40,9 @@
 </form>
 
 <a href="{% url "cart_page" %}">Return to cart</a>
+{% elif success %}
+<p>Nice job on the order! ✨</p>
+<h3>{{ success }}</h3>
 {% else %}
 <h3>No items in cart 🛒, do some more shopping first</h3>
 {% endif %}

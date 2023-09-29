@@ -1,5 +1,7 @@
 from django.db import models
 from django.urls import reverse
+from djmoney.models.fields import MoneyField
+from djmoney.money import Money
 
 
 class Category(models.Model):
@@ -40,6 +42,11 @@ class Product(models.Model):
     description = models.TextField()
     is_published = models.BooleanField(default=False)
     quantity = models.PositiveIntegerField()
+    price = MoneyField(
+        max_digits=10,
+        decimal_places=2,
+        default_currency="AUD",
+    )
     product_type = models.ForeignKey(
         ProductType,
         on_delete=models.PROTECT,

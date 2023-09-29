@@ -67,10 +67,7 @@ class Cart(models.Model):
             return session_cart
 
         # assume user is authenticated from this point
-        try:
-            user_cart: Optional[Cart] = request.user.cart
-        except User.cart.RelatedObjectDoesNotExist:
-            user_cart = None
+        user_cart = Cart.objects.filter(user=request.user).first()
 
         if session_cart:
             if user_cart:

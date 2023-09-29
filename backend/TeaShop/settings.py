@@ -62,6 +62,7 @@ INSTALLED_APPS = [
     "orders.apps.OrdersConfig",
     # third party
     "crispy_forms",
+    "djmoney",
 ]
 if DEBUG:
     INSTALLED_APPS.append("debug_toolbar")
