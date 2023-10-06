@@ -3,6 +3,7 @@ from typing import Optional, Self
 from django.contrib.auth import get_user_model
 from django.db import models, transaction
 from django.http import HttpRequest
+from django.utils import timezone
 from products.models import Product
 
 User = get_user_model()
@@ -10,6 +11,7 @@ User = get_user_model()
 
 class Cart(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
+    updated = models.DateTimeField(default=timezone.now)
 
     def add_product(
         self, product: Product, quantity: int = 1, set_quantity: bool = False
@@ -23,14 +25,16 @@ class Cart(models.Model):
             existing_cart_item.save()
         else:
             CartItem.objects.create(cart=self, product=product, quantity=quantity)
+        self.save()
 
     def remove_product(self, product: Product):
         existing_cart_item = self.cartitem_set.filter(product=product).first()
         if existing_cart_item:
             existing_cart_item.delete()
+        self.save()
 
     @transaction.atomic
-    def merge_another(self, another_cart) -> Self:
+    def merge_another(self, another_cart: Self) -> Self:
         if not another_cart:
             return self
 
@@ -45,7 +49,12 @@ class Cart(models.Model):
                 another_cart_item.save()
 
         another_cart.delete()
+        self.save()
         return self
+
+    def save(self, *args, **kwargs) -> None:
+        self.updated = timezone.now()
+        super().save(*args, **kwargs)
 
     def __str__(self) -> str:
         return f"{self.user or 'Session'+self.id} Cart"
@@ -67,7 +76,10 @@ class Cart(models.Model):
             return session_cart
 
         # assume user is authenticated from this point
-        user_cart = Cart.objects.filter(user=request.user).first()
+        try:
+            user_cart: Optional[Cart] = request.user.cart
+        except User.cart.RelatedObjectDoesNotExist:
+            user_cart = None
 
         if session_cart:
             if user_cart:

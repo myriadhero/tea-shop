@@ -1,15 +1,35 @@
-from typing import Any
+from typing import Any, Optional
 
 import stripe
 from cart.models import Cart
 from django.conf import settings
-from django.http import HttpRequest, HttpResponse, JsonResponse
+from django.core.exceptions import ObjectDoesNotExist
+from django.http import HttpRequest, HttpResponse, HttpResponseRedirect, JsonResponse
+from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
 
+from .models import Address, FrozenCart, Order
+
 stripe.api_key = settings.STRIPE_SECRET_KEY
+
+# TODO: refactor logic in views to models
+
+
+def carts_have_same_items(cart: Cart, frozen_cart: FrozenCart) -> bool:
+    if cart.cartitem_set.count() != frozen_cart.frozencartitem_set.count():
+        return False
+
+    for cart_item in cart.cartitem_set.all():
+        frozen_cart_item = frozen_cart.frozencartitem_set.filter(
+            product=cart_item.product
+        ).first()
+        if not frozen_cart_item or cart_item.quantity != frozen_cart_item.quantity:
+            return False
+
+    return True
 
 
 class OrderPageView(TemplateView):
@@ -17,24 +37,68 @@ class OrderPageView(TemplateView):
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
-        context["cart"] = Cart.get_request_cart(
-            self.request, create_cart=kwargs.get("create_cart", False)
-        )
-        context["stripe_public_key"] = settings.STRIPE_PUBLIC_KEY
 
+        cart = Cart.get_request_cart(self.request)
+        context["cart"] = cart
+
+        # no cart, no order
+        if not cart:
+            return context
+
+        success_url = self.request.build_absolute_uri(reverse("order-success"))
+        context["success_url"] = success_url
+
+        # reuse existing order if possible
+        if (
+            order := Order.objects.filter(
+                id=self.request.session.get("order_id")
+            ).first()
+        ) and order.payment_status == Order.Status.CREATED:
+            if order.created > cart.updated and carts_have_same_items(cart, order.cart):
+                context["stripe_client_secret"] = order.payment_intent
+                context["frozen_cart"] = order.cart
+                return context
+            # cancel order if cart was updated
+            # TODO: cancel payment intent
+            # TODO: clear out the canceled orders from DB after some time
+            order.payment_status = Order.Status.CANCELED
+
+        # new order created from this point on
+        frozen_cart = FrozenCart.create_from_cart(cart)
+        context["frozen_cart"] = frozen_cart
+
+        context["stripe_public_key"] = settings.STRIPE_PUBLIC_KEY
         intent = stripe.PaymentIntent.create(
-            amount=1999,
+            amount=frozen_cart.total_price.amount,
             currency="AUD",
             automatic_payment_methods={
                 "enabled": True,
             },
         )
         client_secret = intent.client_secret
-
         context["stripe_client_secret"] = client_secret
-        self.request.session["client_secret"] = client_secret
+
+        order = Order.objects.create(cart=frozen_cart, payment_intent=client_secret)
+        if (user := self.request.user).is_authenticated:
+            order.user = user
+            order.email = user.email
+            order.save()
+
+            try:
+                address: Optional[Address] = user.address
+                context["stripeDefaultAddressValues"] = address.to_dict()
+            except ObjectDoesNotExist:
+                pass
+
+        self.request.session["order_id"] = order.id
 
         return context
+
+    def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        context = self.get_context_data(**kwargs)
+        if not context["cart"]:
+            return HttpResponseRedirect(reverse("cart"))
+        return self.render_to_response(context)
 
 
 class OrderSuccessPageView(TemplateView):

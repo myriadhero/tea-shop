@@ -5,24 +5,35 @@
 <script src="https://js.stripe.com/v3/"></script>
 {% endblock header_include %}
 
-{% block title %}Cart full of Doggo Treats{% endblock title %}
+{% block title %}Checkout the Doggo Treats{% endblock title %}
 
 {% block content %}
 <h1>Ready to buy?</h1>
 
-{% if cart %}
-{% for cart_item in cart.cartitem_set.all %}
+{% for cart_item in frozen_cart.frozencartitem_set.all %}
     <h3>{{ cart_item.product.name }}</h3>
     {% include 'cart/product_add_form.html' %}
 {% endfor %}
 
+<h2>Total: {{ frozen_cart.total_price }}</h2>
+
 <form id='payment-form'>
     {% csrf_token %}
+
     <h4>Email</h4>
-    <input type="email" name="order_email" id="order_email" placeholder="hello@doggo.com">
+    {% if request.user.is_authenticated %}
+        <input type="email" name="order_email" id="order_email" value="{{ request.user.email }}" readonly>
+    {% else %}
+        <p>Tip: <a href="{% url "login" %}">Login</a> to prefill and save email and address.</p>
+        <input type="email" name="order_email" id="order_email" placeholder="hello@doggo.com">
+    {% endif %}
 
     <h4>Adress</h4>
     <div id="address-element"></div>
+    {% if request.user.is_authenticated %}
+        <input type="checkbox" name="save_address" id="save_address_checkbox">
+    {% endif %}
+
     <h4>Pay by card</h4>
     <div id="payment-element"></div>
     {{ stripe_default_values|json_script:"stripe-default-values" }}
@@ -30,7 +41,9 @@
         var stripePublicKey = "{{ stripe_public_key }}";
         var stripeClientSecret = "{{ stripe_client_secret }}";
         var stripeDefaultValues = JSON.parse(document.getElementById('stripe-default-values').textContent);
+        var stripeRedirectSuccessUrl = "{{ success_url }}";
     </script>
+    
     <script src="{% static "orders/payments.js" %}"></script>
 
     <button id="submit">
@@ -40,13 +53,5 @@
 </form>
 
 <a href="{% url "cart_page" %}">Return to cart</a>
-{% elif success %}
-<p>Nice job on the order! ✨</p>
-<h3>{{ success }}</h3>
-{% else %}
-<h3>No items in cart 🛒, do some more shopping first</h3>
-{% endif %}
-
-
 
 {% endblock content %}

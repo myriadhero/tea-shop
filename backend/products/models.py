@@ -1,7 +1,6 @@
 from django.db import models
 from django.urls import reverse
 from djmoney.models.fields import MoneyField
-from djmoney.money import Money
 
 
 class Category(models.Model):

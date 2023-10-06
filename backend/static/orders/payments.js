@@ -9,7 +9,9 @@ const appearance = {
 const options = {
   mode: "shipping",
   allowedCountries: ["AU"],
-  ...(stripeDefaultValues && { defaultValues: stripeDefaultValues }),
+  ...(stripeDefaultAddressValues && {
+    defaultValues: stripeDefaultAddressValues,
+  }),
 };
 const elements = stripe.elements({
   appearance,
@@ -19,9 +21,6 @@ const addressElement = elements.create("address", options);
 const paymentElement = elements.create("payment");
 addressElement.mount("#address-element");
 paymentElement.mount("#payment-element");
-
-// The items the customer wants to buy
-// const items = [{ id: "xl-tshirt" }];
 
 // initialize();
 checkStatus();
@@ -35,9 +34,7 @@ async function handleSubmit(e) {
   setLoading(true);
 
   const form = e.target;
-  // TODO: handle invalid email
-  // const email = form.querySelector("#order_email").value;
-  const data = new FormData(e.target);
+  const data = new FormData(form);
 
   let { complete, value } = await addressElement.getValue();
 
@@ -55,11 +52,20 @@ async function handleSubmit(e) {
     body: data,
   });
 
+  // if not success, show error message and return
+  if (!serverResponse.ok) {
+    setLoading(false);
+    // get error messages to show
+    const serverResponseData = await serverResponse.json();
+    showMessage(serverResponseData.message);
+    return;
+  }
+
   const { error } = await stripe.confirmPayment({
     elements,
     confirmParams: {
-      // Make sure to change this to your payment completion page
-      return_url: "http://localhost:8000/shop/orders/success/",
+      // Payment completion page
+      return_url: stripeRedirectSuccessUrl,
     },
   });
 
@@ -132,26 +138,3 @@ function setLoading(isLoading) {
     document.querySelector("#button-text").classList.remove("hidden");
   }
 }
-
-// Fetches a payment intent and captures the client secret
-// async function initialize() {
-//   const response = await fetch("/create-payment-intent", {
-//     method: "POST",
-//     headers: { "Content-Type": "application/json" },
-//     body: JSON.stringify({ items }),
-//   });
-//   const { clientSecret } = await response.json();
-
-//   const appearance = {
-//     theme: "stripe",
-//   };
-//   elements = stripe.elements({ appearance, clientSecret });
-//   //
-
-//   const paymentElementOptions = {
-//     layout: "tabs",
-//   };
-
-//   const paymentElement = elements.create("payment", paymentElementOptions);
-//   paymentElement.mount("#payment-element");
-// }
