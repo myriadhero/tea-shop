@@ -10,12 +10,12 @@
 {% block content %}
 <h1>Ready to buy?</h1>
 
-{% for cart_item in frozen_cart.frozencartitem_set.all %}
+{% for cart_item in cart.frozencartitem_set.all %}
     <h3>{{ cart_item.product.name }}</h3>
     {% include 'cart/product_add_form.html' %}
 {% endfor %}
 
-<h2>Total: {{ frozen_cart.total_price }}</h2>
+<h2>Total: {{ cart.total_price }}</h2>
 
 <form id='payment-form'>
     {% csrf_token %}

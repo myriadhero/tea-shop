@@ -38,15 +38,23 @@ class OrderPageView(TemplateView):
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
 
+        # get cart but do not pass it to context, only pass frozen cart on this page
         cart = Cart.get_request_cart(self.request)
-        context["cart"] = cart
 
         # no cart, no order
         if not cart:
             return context
 
-        success_url = self.request.build_absolute_uri(reverse("order-success"))
-        context["success_url"] = success_url
+        # helper context variables
+        context["success_url"] = self.request.build_absolute_uri(
+            reverse("order-success")
+        )
+        if (user := self.request.user).is_authenticated:
+            try:
+                address: Optional[Address] = user.address
+                context["stripeDefaultAddressValues"] = address.to_dict()
+            except ObjectDoesNotExist:
+                pass
 
         # reuse existing order if possible
         if (
@@ -56,16 +64,16 @@ class OrderPageView(TemplateView):
         ) and order.payment_status == Order.Status.CREATED:
             if order.created > cart.updated and carts_have_same_items(cart, order.cart):
                 context["stripe_client_secret"] = order.payment_intent
-                context["frozen_cart"] = order.cart
+                context["cart"] = order.cart
                 return context
             # cancel order if cart was updated
-            # TODO: cancel payment intent
+            stripe.PaymentIntent.cancel(order.payment_intent)
             # TODO: clear out the canceled orders from DB after some time
             order.payment_status = Order.Status.CANCELED
 
         # new order created from this point on
         frozen_cart = FrozenCart.create_from_cart(cart)
-        context["frozen_cart"] = frozen_cart
+        context["cart"] = frozen_cart
 
         context["stripe_public_key"] = settings.STRIPE_PUBLIC_KEY
         intent = stripe.PaymentIntent.create(
@@ -79,17 +87,6 @@ class OrderPageView(TemplateView):
         context["stripe_client_secret"] = client_secret
 
         order = Order.objects.create(cart=frozen_cart, payment_intent=client_secret)
-        if (user := self.request.user).is_authenticated:
-            order.user = user
-            order.email = user.email
-            order.save()
-
-            try:
-                address: Optional[Address] = user.address
-                context["stripeDefaultAddressValues"] = address.to_dict()
-            except ObjectDoesNotExist:
-                pass
-
         self.request.session["order_id"] = order.id
 
         return context
