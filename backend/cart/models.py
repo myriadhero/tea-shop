@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from typing import Optional, Self
 
 from django.contrib.auth import get_user_model
@@ -11,7 +12,7 @@ User = get_user_model()
 
 class Cart(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
-    updated = models.DateTimeField(default=timezone.now)
+    updated = models.DateTimeField(auto_now=True)
 
     def add_product(
         self, product: Product, quantity: int = 1, set_quantity: bool = False
@@ -25,13 +26,11 @@ class Cart(models.Model):
             existing_cart_item.save()
         else:
             CartItem.objects.create(cart=self, product=product, quantity=quantity)
-        self.save()
 
     def remove_product(self, product: Product):
         existing_cart_item = self.cartitem_set.filter(product=product).first()
         if existing_cart_item:
             existing_cart_item.delete()
-        self.save()
 
     @transaction.atomic
     def merge_another(self, another_cart: Self) -> Self:
@@ -49,12 +48,7 @@ class Cart(models.Model):
                 another_cart_item.save()
 
         another_cart.delete()
-        self.save()
         return self
-
-    def save(self, *args, **kwargs) -> None:
-        self.updated = timezone.now()
-        super().save(*args, **kwargs)
 
     def __str__(self) -> str:
         return f"{self.user or 'Session'+self.id} Cart"
@@ -122,7 +116,13 @@ class CartItem(models.Model):
         delete_results = super().delete(*args, **kwargs)
         if not cart.cartitem_set.exclude(id=cart_item_id).exists():
             cart.delete()
+        else:
+            cart.save()
         return delete_results
+
+    def save(self, *args, **kwargs) -> None:
+        super().save(*args, **kwargs)
+        self.cart.save()
 
     def __str__(self) -> str:
         return f"{self.cart} Item: {self.product}, {self.quantity}"

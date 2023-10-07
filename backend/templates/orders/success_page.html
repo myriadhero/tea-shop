@@ -1,0 +1,15 @@
+{% extends '_base.html' %} {% load static %} {% block header_include %}
+<script src="https://js.stripe.com/v3/"></script>
+{% endblock header_include %} {% block title %}Treats!!{% endblock title %} {%
+block content %}
+<h1>n1 👍</h1>
+
+{% for cart_item in cart.frozencartitem_set.all %}
+<h3>{{ cart_item.product.name }}</h3>
+{% include 'cart/product_add_form.html' %} {% endfor %}
+
+<h2>Total: {{ cart.total_price }}</h2>
+
+All done! <a href="{% url 'shop' %}">Shop again?</a>
+
+{% endblock content %}

@@ -19,19 +19,19 @@
 
 <form id='payment-form'>
     {% csrf_token %}
-
+    <input type="hidden" name="payment_intent" value="{{ stripe_client_secret }}">
     <h4>Email</h4>
     {% if request.user.is_authenticated %}
-        <input type="email" name="order_email" id="order_email" value="{{ request.user.email }}" readonly>
+        <input type="email" name="email" id="order_email" value="{{ request.user.email }}" readonly>
     {% else %}
         <p>Tip: <a href="{% url "login" %}">Login</a> to prefill and save email and address.</p>
-        <input type="email" name="order_email" id="order_email" placeholder="hello@doggo.com">
+        <input type="email" name="email" id="order_email" placeholder="hello@doggo.com">
     {% endif %}
 
     <h4>Adress</h4>
     <div id="address-element"></div>
     {% if request.user.is_authenticated %}
-        <input type="checkbox" name="save_address" id="save_address_checkbox">
+    <span><input type="checkbox" name="save_address" id="save_address_checkbox">Save address for later</span>
     {% endif %}
 
     <h4>Pay by card</h4>
@@ -40,7 +40,7 @@
     <script>
         var stripePublicKey = "{{ stripe_public_key }}";
         var stripeClientSecret = "{{ stripe_client_secret }}";
-        var stripeDefaultValues = JSON.parse(document.getElementById('stripe-default-values').textContent);
+        var stripeDefaultAddressValues = JSON.parse(document.getElementById('stripe-default-values').textContent);
         var stripeRedirectSuccessUrl = "{{ success_url }}";
     </script>
     

@@ -22,6 +22,7 @@ from orders.views import OrderPageView
 from products.views import FeaturedProductsView
 
 urlpatterns = [
+    path("accounts/", include("django.contrib.auth.urls")),
     path("admin/", admin.site.urls),
     path("", include("pages.urls")),
     path("shop/cart/", include("cart.urls")),

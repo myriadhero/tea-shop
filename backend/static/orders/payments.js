@@ -40,11 +40,17 @@ async function handleSubmit(e) {
 
   if (!complete) {
     setLoading(false);
-    showMessage("The address is not complete.");
+    showMessage("Address is incomplete.");
     return;
   }
   const address = value;
-  data.append("order_address", address);
+  data.append("name", address.name);
+  data.append("city", address.address.city);
+  data.append("country", address.address.country);
+  data.append("postal_code", address.address.postal_code);
+  data.append("state", address.address.state);
+  data.append("line1", address.address.line1);
+  data.append("line2", address.address.line2);
 
   // send user data to server (but not financial data!)
   const serverResponse = await fetch("/shop/orders/order-details/", {
@@ -56,8 +62,16 @@ async function handleSubmit(e) {
   if (!serverResponse.ok) {
     setLoading(false);
     // get error messages to show
-    const serverResponseData = await serverResponse.json();
-    showMessage(serverResponseData.message);
+    try {
+      const serverResponseData = await serverResponse.json();
+      // TODO: design proper error messages
+      showMessage(serverResponseData.errors);
+    } catch (err) {
+      // if error messages not available, show generic error message
+      showMessage(
+        "An unexpected error occurred. Please try refreshing the page."
+      );
+    }
     return;
   }
 
