@@ -1,8 +1,12 @@
+import json
 from typing import Self
 
+import stripe
 from cart.models import Cart
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from djmoney.models.fields import MoneyField
 from djmoney.money import Money
@@ -11,6 +15,7 @@ from products.models import Product
 from .forms import OrderDetailsForm
 
 User = get_user_model()
+stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
 class Order(models.Model):
@@ -63,6 +68,103 @@ class Order(models.Model):
 
     def __str__(self) -> str:
         return f"Order #{self.id} - {self.user or self.email}"
+
+    # create from cart
+    @classmethod
+    def create_from_cart(cls, cart: Cart) -> Self:
+        frozen_cart = FrozenCart.create_from_cart(cart)
+
+        intent = stripe.PaymentIntent.create(
+            amount=frozen_cart.total_price.get_amount_in_sub_unit(),
+            currency="AUD",
+            automatic_payment_methods={
+                "enabled": True,
+            },
+        )
+
+        order = cls.objects.create(
+            cart=frozen_cart,
+            live_cart=cart,
+            payment_intent_id=intent.id,
+            payment_intent_client_secret=intent.client_secret,
+        )
+        return order
+
+    def update_from_cart(self, cart: Cart) -> None:
+        if cart.updated < self.cart.updated and self.cart.has_same_items(cart):
+            return
+
+        old_frozen_cart = self.cart
+        self.cart = new_frozen_cart = FrozenCart.create_from_cart(cart)
+
+        if new_frozen_cart.total_price != old_frozen_cart.total_price:
+            intent = stripe.PaymentIntent.modify(
+                self.payment_intent_id,
+                amount=new_frozen_cart.total_price.get_amount_in_sub_unit(),
+            )
+            self.payment_intent_client_secret = intent.client_secret
+
+        self.save()
+        old_frozen_cart.delete()
+
+    def update_details(self, form: OrderDetailsForm) -> None:
+        self.email = form.cleaned_data["email"]
+        if self.address:
+            self.address.update_from_form(form)
+        else:
+            self.address = Address.create_from_form(form, self)
+        self.save()
+
+
+class SessionOrders:
+    """
+    Helper object that keeps track of orders in anonymous user session.
+    To be used in views with requests.
+    """
+
+    def __init__(self, request):
+        self.session = request.session
+        orders_json = self.session.get("orders", "[]")
+        if orders_json == "[]":
+            self.order_ids = []
+            self.orders = Order.objects.none()
+
+        self.order_ids = json.loads(orders_json)
+        self.orders = self.get_queryset()
+
+        for order in self.orders:
+            if order.created < (
+                timezone.now()
+                - timezone.timedelta(days=settings.SESSION_ORDER_TIMEOUT_DAYS)
+            ):
+                self.remove_order(order)
+
+        self.orders = self.get_queryset()
+        return self.orders
+
+    def add_order(self, order: Order):
+        if order.id in self.order_ids:
+            return self.orders
+        # only keep ALLOWED_SESSION_ORDER_HISTORY number of items in the list
+        if len(self.order_ids) >= settings.ALLOWED_SESSION_ORDER_HISTORY:
+            self.order_ids.pop(0)
+
+        self.order_ids.append(order.id)
+        self.session["orders"] = json.dumps(self.order_ids)
+        self.orders = self.get_queryset()
+        return self.orders
+
+    def remove_order(self, order):
+        self.order_ids.remove(order.id)
+        self.session["orders"] = json.dumps(self.order_ids)
+        self.orders = self.get_queryset()
+        return self.orders
+
+    def get_queryset(self):
+        return Order.objects.filter(id__in=self.order_ids)
+
+    def get_completed_orders_qs(self):
+        return self.get_queryset().filter(status=Order.Status.SUCCESS)
 
 
 class Address(models.Model):
@@ -160,6 +262,19 @@ class FrozenCart(models.Model):
             )
         frozen_cart.save()
         return frozen_cart
+
+    def has_same_items(self, cart: Cart) -> bool:
+        if cart.cartitem_set.count() != self.frozencartitem_set.count():
+            return False
+
+        for cart_item in cart.cartitem_set.all():
+            frozen_cart_item = self.frozencartitem_set.filter(
+                product=cart_item.product
+            ).first()
+            if not frozen_cart_item or cart_item.quantity != frozen_cart_item.quantity:
+                return False
+
+        return True
 
 
 class FrozenCartItem(models.Model):

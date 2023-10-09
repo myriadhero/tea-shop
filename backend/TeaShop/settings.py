@@ -170,3 +170,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 STRIPE_SECRET_KEY = env.str("STRIPE_SECRET_KEY")
 STRIPE_PUBLIC_KEY = env.str("STRIPE_PUBLIC_KEY")
 STRIPE_WEBHOOK_SECRET = env.str("STRIPE_WEBHOOK_SECRET")
+
+# used to let anonymous users access their order summaries up to a point
+ALLOWED_SESSION_ORDER_HISTORY = 10
+SESSION_ORDER_TIMEOUT_DAYS = 30

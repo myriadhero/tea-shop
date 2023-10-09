@@ -12,25 +12,9 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
 
 from .forms import OrderDetailsForm
-from .models import Address, FrozenCart, Order
+from .models import Address, Order, SessionOrders
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
-
-# TODO: refactor logic in views to models
-
-
-def carts_have_same_items(cart: Cart, frozen_cart: FrozenCart) -> bool:
-    if cart.cartitem_set.count() != frozen_cart.frozencartitem_set.count():
-        return False
-
-    for cart_item in cart.cartitem_set.all():
-        frozen_cart_item = frozen_cart.frozencartitem_set.filter(
-            product=cart_item.product
-        ).first()
-        if not frozen_cart_item or cart_item.quantity != frozen_cart_item.quantity:
-            return False
-
-    return True
 
 
 class OrderPageView(TemplateView):
@@ -54,37 +38,17 @@ class OrderPageView(TemplateView):
         if (user := self.request.user).is_authenticated:
             try:
                 address: Optional[Address] = user.address
-                context["stripeDefaultAddressValues"] = address.to_dict()
+                context["stripeDefaultAddressValues"] = {"address": address.to_dict()}
             except ObjectDoesNotExist:
                 pass
 
-        # reuse existing order if possible
-        # TODO: stripe docs say that i should reuse existing payment intent if possible instead of creating a new one
-        # i need to update the payment amount if the cart has changed
-        # and create new frozen cart
-        # and delete the old frozen cart
+        # reuse existing order/stripe payment intent if possible
         if (
             order := Order.objects.filter(
                 id=self.request.session.get("order_id")
             ).first()
         ) and order.payment_status == Order.Status.CREATED:
-            if cart.updated > order.cart.updated or not carts_have_same_items(
-                cart, order.cart
-            ):
-                # recreate frozen cart, add it to order and reuse the order and instent
-                old_frozen_cart = order.cart
-                new_frozen_cart = FrozenCart.create_from_cart(cart)
-
-                if new_frozen_cart.total_price != old_frozen_cart.total_price:
-                    intent = stripe.PaymentIntent.modify(
-                        order.payment_intent_id,
-                        amount=new_frozen_cart.total_price.get_amount_in_sub_unit(),
-                    )
-                    order.payment_intent_client_secret = intent.client_secret
-
-                order.cart = new_frozen_cart
-                order.save()
-                old_frozen_cart.delete()
+            order.update_from_cart(cart)
 
             context["stripe_client_secret"] = order.payment_intent_client_secret
             context["cart"] = order.cart
@@ -94,25 +58,14 @@ class OrderPageView(TemplateView):
             # TODO: also cancel stale payment intents/orders
 
         # new order created from this point on
-        frozen_cart = FrozenCart.create_from_cart(cart)
-        context["cart"] = frozen_cart
+        order = Order.create_from_cart(cart)
+        # TODO: allow user to access order summary for some time using session
+        # maybe need to think about whether incomplete orders should be included
+        if not user.is_authenticated:
+            SessionOrders(self.request).add_order(order)
 
-        intent = stripe.PaymentIntent.create(
-            amount=frozen_cart.total_price.get_amount_in_sub_unit(),
-            currency="AUD",
-            automatic_payment_methods={
-                "enabled": True,
-            },
-        )
-        client_secret = intent.client_secret
-        context["stripe_client_secret"] = client_secret
-
-        order = Order.objects.create(
-            cart=frozen_cart,
-            live_cart=cart,
-            payment_intent_id=intent.id,
-            payment_intent_client_secret=client_secret,
-        )
+        context["cart"] = order.frozen_cart
+        context["stripe_client_secret"] = order.payment_intent_client_secret
         self.request.session["order_id"] = order.id
 
         return context
@@ -144,12 +97,11 @@ class CheckoutDetailsUpdateView(View):
                     }
                 )
 
-            order_address = Address.create_from_form(form, order)
-            email = form.cleaned_data["email"]
+            order.update_details(form)
 
             if request.user.is_authenticated:
                 order.user = request.user
-                email = request.user.email
+                order.save()
 
                 if form.cleaned_data["save_address"]:
                     try:
@@ -158,10 +110,6 @@ class CheckoutDetailsUpdateView(View):
 
                     except ObjectDoesNotExist:
                         Address.create_from_form(form, request.user)
-
-            order.email = email
-            order.payment_status = Order.Status.PENDING
-            order.save()
 
             return JsonResponse({"success": True})
         return JsonResponse({"success": False, "errors": form.errors})
@@ -189,10 +137,13 @@ class StripeWebhookView(View):
         if event["type"] == "payment_intent.succeeded":
             payment_intent = event["data"]["object"]
             order = Order.objects.filter(payment_intent_id=payment_intent["id"]).first()
-            order.payment_status = Order.Status.SUCCESS  # 🎉
-            if live_cart := order.live_cart:
-                live_cart.delete()
-            order.save()
+            if not order.payment_status == Order.Status.SUCCESS:
+                order.payment_status = Order.Status.SUCCESS  # 🎉
+                if live_cart := order.live_cart:
+                    # TODO: ideally i want to delete only the paid for items from the cart
+                    # cart will be deleted on webhook, success page will poll for order status confirmation in case webhook arrives late
+                    live_cart.delete()
+                order.save()
 
             # TODO: send email to customer
 
@@ -207,6 +158,8 @@ class OrderSuccessPageView(TemplateView):
     template_name = "orders/success_page.html"
 
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        # TODO: need to reimagine this view to poll for order status confirmation in case webhook arrives late
+
         # ?payment_intent=pi_3NyZ...&payment_intent_client_secret=pi_3NyZ..._secret_ZL0...&redirect_status=succeeded
         # i want to redirect to ?order_id to hide payment intent from url
         # but i also wan to remove order_id from session
