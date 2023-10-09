@@ -109,6 +109,7 @@ class OrderPageView(TemplateView):
 
         order = Order.objects.create(
             cart=frozen_cart,
+            live_cart=cart,
             payment_intent_id=intent.id,
             payment_intent_client_secret=client_secret,
         )
@@ -121,30 +122,6 @@ class OrderPageView(TemplateView):
         if not context["cart"]:
             return HttpResponseRedirect(reverse("cart"))
         return self.render_to_response(context)
-
-
-class OrderSuccessPageView(TemplateView):
-    template_name = "orders/success_page.html"
-
-    def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
-        # ?payment_intent=pi_3NyZ...&payment_intent_client_secret=pi_3NyZ..._secret_ZL0...&redirect_status=succeeded
-        # i want to redirect to ?order_id to hide payment intent from url
-        # but i also wan to remove order_id from session
-        if not (
-            (order := Order.objects.filter(id=request.session.get("order_id")).first())
-            and order.payment_status == Order.Status.SUCCESS
-            and order.payment_intent_client_secret
-            == request.GET.get("payment_intent_client_secret")
-        ):
-            return HttpResponseRedirect(reverse("cart"))
-
-        request.session.pop("order_id")
-        Cart.get_request_cart(request).delete()
-
-        # TODO: create an order summary page to redirect to
-        # for now can just leave the page as is
-
-        return super().get(request, *args, **kwargs)
 
 
 class CheckoutDetailsUpdateView(View):
@@ -211,8 +188,10 @@ class StripeWebhookView(View):
         # Handle the event
         if event["type"] == "payment_intent.succeeded":
             payment_intent = event["data"]["object"]
-            order = Order.objects.filter(payment_intent=payment_intent["id"]).first()
+            order = Order.objects.filter(payment_intent_id=payment_intent["id"]).first()
             order.payment_status = Order.Status.SUCCESS  # 🎉
+            if live_cart := order.live_cart:
+                live_cart.delete()
             order.save()
 
             # TODO: send email to customer
@@ -222,3 +201,26 @@ class StripeWebhookView(View):
             print(f"Unhandled event type {event['type']}")
 
         return JsonResponse(success=True)
+
+
+class OrderSuccessPageView(TemplateView):
+    template_name = "orders/success_page.html"
+
+    def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        # ?payment_intent=pi_3NyZ...&payment_intent_client_secret=pi_3NyZ..._secret_ZL0...&redirect_status=succeeded
+        # i want to redirect to ?order_id to hide payment intent from url
+        # but i also wan to remove order_id from session
+        if not (
+            (order := Order.objects.filter(id=request.session.get("order_id")).first())
+            and order.payment_status == Order.Status.SUCCESS
+            and order.payment_intent_client_secret
+            == request.GET.get("payment_intent_client_secret")
+        ):
+            return HttpResponseRedirect(reverse("cart"))
+
+        request.session.pop("order_id")
+
+        # TODO: create an order summary page to redirect to
+        # for now can just leave the page as is
+
+        return super().get(request, *args, **kwargs)

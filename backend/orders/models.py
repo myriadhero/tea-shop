@@ -36,7 +36,18 @@ class Order(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     email = models.EmailField(blank=True)
-    cart = models.OneToOneField("FrozenCart", on_delete=models.PROTECT)
+    cart = models.OneToOneField(
+        "FrozenCart",
+        on_delete=models.PROTECT,
+        help_text="The exact items customer is paying for, frozen in time, so records exist even if products get removed from site.",
+    )
+    live_cart = models.OneToOneField(
+        Cart,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        help_text="Customer's live cart that will get deleted/emptied when order is successful.",
+    )
 
     class Meta:
         constraints = [
