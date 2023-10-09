@@ -1,5 +1,6 @@
 from django.test import TestCase
 from django.urls import resolve, reverse
+from djmoney.money import Money
 
 from .models import Category, Product, ProductType
 from .views import (
@@ -26,6 +27,7 @@ class ProductPageTests(TestCase):
             quantity=42,
             product_type=self.ptype,
             slug="best-oolong",
+            price=Money(5, "AUD"),
         )
         self.product.categories.add(self.category)
 
@@ -66,6 +68,7 @@ class CategoryPageTests(TestCase):
             quantity=42,
             product_type=self.ptype,
             slug="best-oolong",
+            price=Money(3, "AUD"),
         )
         self.product2 = Product.objects.create(
             name="Inferior oolong tea",
@@ -74,6 +77,7 @@ class CategoryPageTests(TestCase):
             quantity=42,
             product_type=self.ptype,
             slug="not-best-oolong",
+            price=Money(5, "AUD"),
         )
         self.product1.categories.add(self.category)
         self.product2.categories.add(self.category)
@@ -85,6 +89,7 @@ class CategoryPageTests(TestCase):
             quantity=42,
             product_type=self.ptype,
             slug="golden-sultan",
+            price=Money(7, "AUD"),
         )
 
         self.url = reverse("products_by_category", kwargs={"slug": self.category.slug})
@@ -124,6 +129,7 @@ class PTypePageTests(TestCase):
             quantity=42,
             product_type=self.ptype,
             slug="best-oolong",
+            price=Money(5, "AUD"),
         )
         self.product2 = Product.objects.create(
             name="Inferior oolong tea",
@@ -132,6 +138,7 @@ class PTypePageTests(TestCase):
             quantity=42,
             product_type=self.ptype,
             slug="not-best-oolong",
+            price=Money(3, "AUD"),
         )
         self.product1.categories.add(self.category)
 
@@ -145,6 +152,7 @@ class PTypePageTests(TestCase):
             quantity=42,
             product_type=self.unrelated_type,
             slug="golden-sultan",
+            price=Money(7, "AUD"),
         )
 
         self.url = reverse("products_by_type", kwargs={"slug": self.ptype.slug})

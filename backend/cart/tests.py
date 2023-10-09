@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import resolve, reverse
+from djmoney.money import Money
 from products.models import Category, Product, ProductType
 
 from .models import Cart, CartItem
@@ -27,6 +28,7 @@ class CartPageTests(TestCase):
             quantity=42,
             product_type=self.ptype1,
             slug="best-oolong",
+            price=Money(5, "AUD"),
         )
         self.product2 = Product.objects.create(
             name="Inferior oolong tea",
@@ -35,6 +37,7 @@ class CartPageTests(TestCase):
             quantity=42,
             product_type=self.ptype1,
             slug="not-best-oolong",
+            price=Money(3, "AUD"),
         )
         self.product1.categories.add(self.category)
 
@@ -48,6 +51,7 @@ class CartPageTests(TestCase):
             quantity=42,
             product_type=self.ptype2,
             slug="golden-sultan-turban",
+            price=Money(7, "AUD"),
         )
 
         self.user = User.objects.create_user(

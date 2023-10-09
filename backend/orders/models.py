@@ -236,7 +236,7 @@ class Address(models.Model):
 
 
 class FrozenCart(models.Model):
-    # TODO: can this be database computed?
+    # TODO: can this be database computed or should this be a method?
     total_price = MoneyField(
         max_digits=10,
         decimal_places=2,

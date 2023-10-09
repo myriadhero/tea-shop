@@ -25,6 +25,7 @@ env = environ.Env(
         "django-insecure-w1=ulwq^^v-j^lz!*!oos%!3!aorqr-o0pv*xqbuk2ulbd+s)x",
     ),
     STATICFILES_ROOT_DIR=(Path, BASE_DIR / "staticfiles"),
+    MEDIA_ROOT_DIR=(Path, BASE_DIR / "media"),
     DJANGO_ALLOWED_HOSTS=(tuple, ("localhost", "127.0.0.1")),
 )
 
@@ -65,10 +66,15 @@ INSTALLED_APPS = [
     "djmoney",
 ]
 if DEBUG:
-    INSTALLED_APPS.append("debug_toolbar")
-    import mimetypes
+    try:
+        import debug_toolbar
 
-    mimetypes.add_type("application/javascript", ".js", True)
+        INSTALLED_APPS.append("debug_toolbar")
+        import mimetypes
+
+        mimetypes.add_type("application/javascript", ".js", True)
+    except ImportError:
+        pass
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -159,7 +165,7 @@ STATIC_URL = "static/"
 STATIC_ROOT = env.path("STATICFILES_ROOT_DIR")
 
 MEDIA_URL = "media/"
-MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_ROOT = env.path("MEDIA_ROOT_DIR")
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
