@@ -17,8 +17,8 @@ from .models import Address, Order, SessionOrders
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
-class OrderPageView(TemplateView):
-    template_name = "orders/order_page.html"
+class CheckoutPageView(TemplateView):
+    template_name = "orders/checkout.html"
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
@@ -64,7 +64,7 @@ class OrderPageView(TemplateView):
         if not user.is_authenticated:
             SessionOrders(self.request).add_order(order)
 
-        context["cart"] = order.frozen_cart
+        context["cart"] = order.cart
         context["stripe_client_secret"] = order.payment_intent_client_secret
         self.request.session["order_id"] = order.id
 
@@ -72,8 +72,8 @@ class OrderPageView(TemplateView):
 
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         context = self.get_context_data(**kwargs)
-        if not context["cart"]:
-            return HttpResponseRedirect(reverse("cart"))
+        if not context.get("cart"):
+            return HttpResponseRedirect(reverse("cart_page"))
         return self.render_to_response(context)
 
 

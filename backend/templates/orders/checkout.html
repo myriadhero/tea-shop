@@ -9,6 +9,7 @@
 
 {% block content %}
 <h1>Ready to buy?</h1>
+<a href="{% url "cart_page" %}">← Return to cart</a>
 
 {% for cart_item in cart.frozencartitem_set.all %}
     <h3>{{ cart_item.product.name }}</h3>
@@ -52,6 +53,6 @@
     </button>
 </form>
 
-<a href="{% url "cart_page" %}">Return to cart</a>
+
 
 {% endblock content %}

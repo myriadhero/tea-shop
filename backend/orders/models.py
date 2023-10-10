@@ -122,7 +122,7 @@ class SessionOrders:
     To be used in views with requests.
     """
 
-    def __init__(self, request):
+    def __init__(self, request) -> None:
         self.session = request.session
         orders_json = self.session.get("orders", "[]")
         if orders_json == "[]":
@@ -140,7 +140,10 @@ class SessionOrders:
                 self.remove_order(order)
 
         self.orders = self.get_queryset()
-        return self.orders
+
+    @property
+    def completed_orders(self):
+        return self.get_completed_orders_qs()
 
     def add_order(self, order: Order):
         if order.id in self.order_ids:
