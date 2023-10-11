@@ -5,6 +5,7 @@ import stripe
 from cart.models import Cart
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -109,10 +110,10 @@ class Order(models.Model):
 
     def update_details(self, form: OrderDetailsForm) -> None:
         self.email = form.cleaned_data["email"]
-        if self.address:
+        try:
             self.address.update_from_form(form)
-        else:
-            self.address = Address.create_from_form(form, self)
+        except ObjectDoesNotExist:
+            Address.create_from_form(form, self)
         self.save()
 
 

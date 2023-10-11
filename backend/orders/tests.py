@@ -7,12 +7,7 @@ from djmoney.money import Money
 from products.models import Category, Product, ProductType
 
 from .models import Order
-from .views import (
-    CheckoutDetailsUpdateView,
-    CheckoutPageView,
-    OrderSuccessPageView,
-    StripeWebhookView,
-)
+from .views import CheckoutPageView, OrderSuccessPageView, StripeWebhookView
 
 User = get_user_model()
 UNAME = "doggoteanoob"
@@ -31,7 +26,9 @@ class MockPaymentIntent:
     def modify(self, amount):
         self.amount = amount
         self.modified_counter += 1
-        self.client_secret += f"_M{self.modified_counter}"
+        self.client_secret = (
+            self.client_secret.split("_M")[0] + f"_M{self.modified_counter}"
+        )
         return self
 
     def __repr__(self) -> str:
@@ -42,7 +39,7 @@ class MockPaymentIntent:
 
 class StripePaymentIntentMockFactory:
     id_counter = 0
-    all_intents = {}
+    all_intents: dict[str, MockPaymentIntent] = {}
 
     @classmethod
     def create(cls, *args, **kwargs):
@@ -66,10 +63,8 @@ class CheckoutPageTests(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         patch(
-            "stripe.PaymentIntent.create", StripePaymentIntentMockFactory.create
-        ).start()
-        patch(
-            "stripe.PaymentIntent.modify", StripePaymentIntentMockFactory.modify
+            "stripe.PaymentIntent",
+            StripePaymentIntentMockFactory,
         ).start()
 
         return super().setUpClass()
@@ -128,14 +123,6 @@ class CheckoutPageTests(TestCase):
     def test_url_exists_at_correct_location(self):
         self.assertEqual(self.response.status_code, 200)
 
-        # redirect to cart page if cart is empty
-        self.client.post(
-            reverse("cart_page"),
-            {"product_slug": self.product1.slug, "remove_from_cart": True},
-        )
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 302)
-
     def test_checkout_template(self):
         response = self.client.get(self.url)
         self.assertTemplateUsed(response, "orders/checkout.html")
@@ -146,7 +133,61 @@ class CheckoutPageTests(TestCase):
         view = resolve("/shop/checkout/")
         self.assertEqual(view.func.view_class, CheckoutPageView)
 
+    def test_redirect_if_empty_cart(self):
+        # remove item from cart to empty it
+        self.client.post(
+            reverse("cart_page"),
+            {"product_slug": self.product1.slug, "remove_from_cart": True},
+        )
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 302)
+
+    def test_modify_cart_and_order(self):
+        fake_stripe_payment_intent = StripePaymentIntentMockFactory.all_intents[
+            Order.objects.get(pk=self.client.session["order_id"]).payment_intent_id
+        ]
+        self.assertEqual(fake_stripe_payment_intent.amount, 500)
+
+        # add another item to cart
+        self.client.post(reverse("cart_page"), {"product_slug": self.product2.slug})
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(fake_stripe_payment_intent.amount, 800)
+
+    def test_update_customer_details(self):
+        order = Order.objects.get(pk=self.client.session["order_id"])
+        fake_stripe_payment_intent = StripePaymentIntentMockFactory.all_intents[
+            order.payment_intent_id
+        ]
+        self.client.post(
+            self.url,
+            {
+                "payment_intent": fake_stripe_payment_intent.client_secret,
+                "email": "anondoggo@doggomail.com",
+                "name": "Doggotea Noob",
+                "line1": "1 Doggo St",
+                "line2": "Doggo Town Villa",
+                "city": "Doggo City",
+                "state": "NSW",
+                "postal_code": "2000",
+                "country": "AU",
+            },
+        )
+
+        order.refresh_from_db()
+        self.assertEqual(order.email, "anondoggo@doggomail.com")
+        self.assertEqual(order.address.name, "Doggotea Noob")
+        self.assertEqual(order.address.line1, "1 Doggo St")
+        self.assertEqual(order.address.line2, "Doggo Town Villa")
+        self.assertEqual(order.address.city, "Doggo City")
+        self.assertEqual(order.address.state, "NSW")
+        self.assertEqual(order.address.postal_code, "2000")
+        self.assertEqual(order.address.country, "AU")
+
     @classmethod
     def tearDownClass(cls) -> None:
         patch.stopall()
         return super().tearDownClass()
+
+
+# TODO: still need to test webhook, success page, logged in users, saving address

@@ -53,7 +53,7 @@ async function handleSubmit(e) {
   data.append("line2", address.address.line2);
 
   // send user data to server (but not financial data!)
-  const serverResponse = await fetch("/shop/orders/order-details/", {
+  const serverResponse = await fetch(orderDetailsUpdateUrl, {
     method: "post",
     body: data,
   });

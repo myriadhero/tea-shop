@@ -42,6 +42,7 @@
         var stripePublicKey = "{{ stripe_public_key }}";
         var stripeClientSecret = "{{ stripe_client_secret }}";
         var stripeDefaultAddressValues = JSON.parse(document.getElementById('stripe-default-values').textContent);
+        var orderDetailsUpdateUrl = "{% url 'checkout' %}";
         var stripeRedirectSuccessUrl = "{{ success_url }}";
     </script>
     

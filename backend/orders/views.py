@@ -76,9 +76,10 @@ class CheckoutPageView(TemplateView):
             return HttpResponseRedirect(reverse("cart_page"))
         return self.render_to_response(context)
 
-
-class CheckoutDetailsUpdateView(View):
     def post(self, request: HttpRequest):
+        """
+        Update order details and address
+        """
         form = OrderDetailsForm(request.POST)
         if form.is_valid():
             if (
