@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import resolve, reverse
@@ -18,10 +20,60 @@ UEMAIL = "dtn@alldoggos.com"
 UPWORD = "randomPw@rd12!3"
 
 
-# TODO: gotta mock stripe API calls, otherwise it's creeating new payment intents in the console all the time!
+class MockPaymentIntent:
+    modified_counter = 0
+
+    def __init__(self, payment_id, amount, modified=False) -> None:
+        self.id = f"test_id_{payment_id}"
+        self.client_secret = f"client_secret_{payment_id}"
+        self.amount = amount
+
+    def modify(self, amount):
+        self.amount = amount
+        self.modified_counter += 1
+        self.client_secret += f"_M{self.modified_counter}"
+        return self
+
+    def __repr__(self) -> str:
+        return (
+            f"MockPaymentIntent {self.id}, {self.client_secret}, amount: {self.amount}"
+        )
+
+
+class StripePaymentIntentMockFactory:
+    id_counter = 0
+    all_intents = {}
+
+    @classmethod
+    def create(cls, *args, **kwargs):
+        cls.id_counter += 1
+        intent_mock = MockPaymentIntent(
+            payment_id=cls.id_counter,
+            amount=kwargs["amount"],
+        )
+        cls.all_intents[intent_mock.id] = intent_mock
+        return intent_mock
+
+    @classmethod
+    def modify(cls, *args, **kwargs):
+        intent_mock = cls.all_intents[args[0]]
+        intent_mock.modify(kwargs["amount"])
+
+        return intent_mock
 
 
 class CheckoutPageTests(TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        patch(
+            "stripe.PaymentIntent.create", StripePaymentIntentMockFactory.create
+        ).start()
+        patch(
+            "stripe.PaymentIntent.modify", StripePaymentIntentMockFactory.modify
+        ).start()
+
+        return super().setUpClass()
+
     def setUp(self) -> None:
         self.ptype1 = ProductType.objects.create(
             name="Teas", slug="teas", description="all the teas"
@@ -93,3 +145,8 @@ class CheckoutPageTests(TestCase):
     def test_checkout_url_resolves_checkout_view(self):
         view = resolve("/shop/checkout/")
         self.assertEqual(view.func.view_class, CheckoutPageView)
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        patch.stopall()
+        return super().tearDownClass()
