@@ -64,6 +64,19 @@ INSTALLED_APPS = [
     # third party
     "crispy_forms",
     "djmoney",
+    "wagtail.contrib.forms",
+    "wagtail.contrib.redirects",
+    "wagtail.embeds",
+    "wagtail.sites",
+    "wagtail.users",
+    "wagtail.snippets",
+    "wagtail.documents",
+    "wagtail.images",
+    "wagtail.search",
+    "wagtail.admin",
+    "wagtail",
+    "modelcluster",
+    "taggit",
 ]
 if DEBUG:
     try:
@@ -84,6 +97,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    'wagtail.contrib.redirects.middleware.RedirectMiddleware',
 ]
 if DEBUG:
     MIDDLEWARE.insert(3, "debug_toolbar.middleware.DebugToolbarMiddleware")
@@ -180,3 +194,8 @@ STRIPE_WEBHOOK_SECRET = env.str("STRIPE_WEBHOOK_SECRET")
 # used to let anonymous users access their order summaries up to a point
 ALLOWED_SESSION_ORDER_HISTORY = 10
 SESSION_ORDER_TIMEOUT_DAYS = 30
+
+
+# Wagtail settings
+# WAGTAIL_SITE_NAME = 'Tea Shop'
+# WAGTAILADMIN_BASE_URL = 'http://example.com'
