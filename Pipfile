@@ -10,9 +10,10 @@ django-crispy-forms = "*"
 stripe = "*"
 django-environ = "*"
 django-money = "*"
+wagtail = "*"
 
 [dev-packages]
 django-debug-toolbar = "*"
 
 [requires]
-python_version = "3.11"
+python_version = "3.12"
