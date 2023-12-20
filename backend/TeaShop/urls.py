@@ -19,16 +19,15 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 from orders.views import CheckoutPageView
-from products.views import FeaturedProductsView
-
-from wagtail.admin import urls as wagtailadmin_urls
 from wagtail import urls as wagtail_urls
-from wagtail.documents import urls as wagtaildocs_urls
+from wagtail.admin import urls as wagtailadmin_urls
+
+# from wagtail.documents import urls as wagtaildocs_urls
 
 urlpatterns = [
     path("accounts/", include("django.contrib.auth.urls")),
     path("admin/", admin.site.urls),
-    path("", include("pages.urls")),
+    # path("", include("pages.urls")),
     path("shop/cart/", include("cart.urls")),
     path(
         # TODO: rethink the checkout/orders urls
@@ -38,10 +37,10 @@ urlpatterns = [
     ),
     path("shop/orders/", include("orders.urls")),
     path("shop/", include("products.urls")),
-    path("tea-of-the-month/", FeaturedProductsView.as_view(), name="featured_products"),
-    path('cms/', include(wagtailadmin_urls)),
+    # path("tea-of-the-month/", FeaturedProductsView.as_view(), name="featured_products"),
+    path("cms/", include(wagtailadmin_urls)),
     # path('documents/', include(wagtaildocs_urls)),
-    path('pages/', include(wagtail_urls)),
+    path("", include(wagtail_urls)),
 ]
 
 if settings.DEBUG:

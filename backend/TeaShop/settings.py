@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     "products.apps.ProductsConfig",
     "cart.apps.CartConfig",
     "orders.apps.OrdersConfig",
+    "content.apps.ContentConfig",
     # third party
     "crispy_forms",
     "djmoney",
@@ -97,7 +98,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    'wagtail.contrib.redirects.middleware.RedirectMiddleware',
+    "wagtail.contrib.redirects.middleware.RedirectMiddleware",
 ]
 if DEBUG:
     MIDDLEWARE.insert(3, "debug_toolbar.middleware.DebugToolbarMiddleware")
@@ -197,5 +198,5 @@ SESSION_ORDER_TIMEOUT_DAYS = 30
 
 
 # Wagtail settings
-# WAGTAIL_SITE_NAME = 'Tea Shop'
-# WAGTAILADMIN_BASE_URL = 'http://example.com'
+WAGTAIL_SITE_NAME = "Tea Shop"
+WAGTAILADMIN_BASE_URL = "http://localhost:8000"

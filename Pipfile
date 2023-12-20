@@ -17,3 +17,6 @@ django-debug-toolbar = "*"
 
 [requires]
 python_version = "3.12"
+
+[scripts]
+django = "python backend/manage.py runserver 0.0.0.0:80"
