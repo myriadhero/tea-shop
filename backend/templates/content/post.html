@@ -3,5 +3,9 @@
     Post compost with doggo nos
 {% endblock title %}
 {% block content %}
-    <h1>Yes dis a post about doggos</h1>
+    <p>
+        {% for tag in page.tags.all %}<span style="margin:10px;">{{ tag }}</span>{% endfor %}
+    </p>
+    {% load wagtailcore_tags %}
+    {% include_block page.body %}
 {% endblock content %}
