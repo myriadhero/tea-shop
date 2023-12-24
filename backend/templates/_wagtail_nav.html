@@ -1,8 +1,2 @@
-{% load common_pages_tags %}
-<div>
-    {% get_wagtail_in_menu_items as items_in_menu %}
-    {% for cat in items_in_menu %}
-        <a href="{{ cat.get_url }}">{{ cat.title }}</a>
-        <br>
-    {% endfor %}
-</div>
+{% load menu_tags %}
+{% main_menu %}

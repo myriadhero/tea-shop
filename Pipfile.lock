@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "4d6f62386bfdb9d2df52fd3c0b9ce13ea9545079090b8fa22713a4d55ce05949"
+            "sha256": "103e21b301e2fc2b37b1cba6b37d52d3ad62faad0a81a108f13efea6d5136595"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -168,6 +168,14 @@
             "index": "pypi",
             "markers": "python_version >= '3.10'",
             "version": "==5.0"
+        },
+        "django-cogwheels": {
+            "hashes": [
+                "sha256:197bd05e7114403d7301214b3f8a371c4fb6039cf21c811f099438b167b5ed21",
+                "sha256:848a4d9f2c96c582a4a4f2e7c276dfd95ab3905748cae13bb7c4b365a6717e94"
+            ],
+            "markers": "python_version >= '3.4'",
+            "version": "==0.3"
         },
         "django-crispy-forms": {
             "hashes": [
@@ -433,16 +441,16 @@
                 "sha256:58cd2187c01e70e6e26505bca751777aa9f2ee0b7f4300988b709f44e013003f",
                 "sha256:942c5a758f98d790eaed1a29cb6eefc7ffb0d1cf7af05c3d2791656dbd6ad1e1"
             ],
-            "markers": "python_version >= '3.7'",
+            "markers": "python_version >= '3.0'",
             "version": "==2.31.0"
         },
         "setuptools": {
             "hashes": [
-                "sha256:1e8fdff6797d3865f37397be788a4e3cba233608e9b509382a2777d25ebde7f2",
-                "sha256:735896e78a4742605974de002ac60562d286fa8051a7e2299445e8e8fbb01aa6"
+                "sha256:385eb4edd9c9d5c17540511303e39a147ce2fc04bc55289c322b9e5904fe2c05",
+                "sha256:be1af57fc409f93647f2e8e4573a142ed38724b8cdd389706a867bb4efcf1e78"
             ],
             "markers": "python_version >= '3.8'",
-            "version": "==69.0.2"
+            "version": "==69.0.3"
         },
         "six": {
             "hashes": [
@@ -470,12 +478,12 @@
         },
         "stripe": {
             "hashes": [
-                "sha256:42b4aa5162e45f889afaa40fc1eccfb9ec551c616e1620f700c19a11ae8e62eb",
-                "sha256:84e5e430835a4b0cd4fd2a57ce3853269d1db3439111cda6b6ed752e349cf4a1"
+                "sha256:57e2414ad17fe3444188573fb2e26903cd27dbd92791feda7f0688382fb4c840",
+                "sha256:e789b89be1068dc86e036f53bb44734df6858dcff5ff603ef2850d2e1a17ca24"
             ],
             "index": "pypi",
             "markers": "python_version >= '3.6'",
-            "version": "==7.9.0"
+            "version": "==7.10.0"
         },
         "telepath": {
             "hashes": [
@@ -518,6 +526,24 @@
             "index": "pypi",
             "markers": "python_version >= '3.8'",
             "version": "==5.2.2"
+        },
+        "wagtail-modeladmin": {
+            "hashes": [
+                "sha256:0d92dd012e17dd5b5d5058792c8549594884c87da7ef794e8f1765bb245a5340",
+                "sha256:da545ba34747bff01c942b8306e20ac17d8a64d1873734cc8cf7303716af93fc"
+            ],
+            "index": "pypi",
+            "markers": "python_version >= '3.8'",
+            "version": "==1.0.0"
+        },
+        "wagtailmenus": {
+            "hashes": [
+                "sha256:ce484d06cf901402238ad337fc09ba8842ceff3baa08b4cafaddbb158878cda3",
+                "sha256:cfcaa942474c20383eed6e01a1ddf1249c7a18bb1a2faa25a744fc28c57a745b"
+            ],
+            "index": "pypi",
+            "markers": "python_version >= '3.8'",
+            "version": "==3.1.9"
         },
         "webencodings": {
             "hashes": [

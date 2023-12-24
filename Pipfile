@@ -11,6 +11,8 @@ stripe = "*"
 django-environ = "*"
 django-money = "*"
 wagtail = "*"
+wagtailmenus = "*"
+wagtail-modeladmin = "*"
 
 [dev-packages]
 django-debug-toolbar = "*"
