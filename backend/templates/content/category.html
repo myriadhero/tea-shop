@@ -3,5 +3,12 @@
     Category of Doggos
 {% endblock title %}
 {% block content %}
-    <h1>Yes dis a a lot of cat?egorized doggos</h1>
+    <h1>{{ page.title }}</h1>
+    <ul>
+        {% for child in page.get_children %}
+            <li>
+                <a href="{{ child.url }}">{{ child.title }}</a>
+            </li>
+        {% endfor %}
+    </ul>
 {% endblock content %}

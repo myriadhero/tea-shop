@@ -1,0 +1,78 @@
+body {
+  color: #312d2d;
+  font-family: "sans-serif";
+  text-align: center;
+}
+
+/*   start: container is a grid    */
+.container {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  grid-template-rows: repeat(8, minmax(100px, auto));
+
+  grid-gap: 10px;
+  margin: 0 auto;
+  background: white;
+}
+.container > * {
+  background: rgba(203, 232, 203, 0.622);
+  /*possible padding,define padding reduce the item space*/
+}
+
+/*   end: container is a grid    */
+
+/*   start: second row is a grid nested in the parent grid    */
+
+.logo_and_nav {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-gap: 5px;
+}
+
+.logo_and_nav > * {
+  background: rgba(202, 202, 232, 0.567);
+}
+
+/*   end: second row is a grid  nested in the parent grid  */
+
+/* start: different elements in the grid*/
+
+header {
+  grid-row: 1/2;
+}
+
+.logo_and_nav {
+  grid-row: 2/3;
+}
+
+.content {
+  grid-row: 3/7;
+}
+
+footer {
+  grid-row: 7/8;
+}
+
+/* end: different elements in the grid*/
+
+/* start: layout of the child grid*/
+
+#logo {
+  grid-column: 1/2;
+}
+
+#main_nav {
+  width: 100%;
+  height: 100%;
+  grid-column: 2/-1;
+}
+
+/* end: layout of the child grid*/
+
+/* start: different pages*/
+
+#about {
+  background: rgba(237, 237, 179, 0.649);
+}
+
+/* end: different pages*/

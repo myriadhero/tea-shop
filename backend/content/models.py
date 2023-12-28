@@ -40,13 +40,13 @@ class Post(Page):
     body = StreamField(
         [
             ("heading", blocks.CharBlock(form_classname="title")),
-            ("paragraph", blocks.RichTextBlock()),
+            ("rich_text", blocks.RichTextBlock()),
             ("image", ImageChooserBlock()),
         ],
-        block_counts={
-            "heading": {"min_num": 1},
-            "image": {"max_num": 5},
-        },
+        # block_counts={
+        #     "heading": {"min_num": 1},
+        #     "image": {"max_num": 5},
+        # },
         use_json_field=True,
     )
 
