@@ -3,6 +3,7 @@
     Category of Doggos
 {% endblock title %}
 {% block content %}
+<div class = "content">
     <h1>{{ page.title }}</h1>
     <ul>
         {% for child in page.get_children %}
@@ -11,4 +12,6 @@
             </li>
         {% endfor %}
     </ul>
+</div>
+    
 {% endblock content %}

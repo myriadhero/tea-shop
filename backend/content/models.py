@@ -59,3 +59,11 @@ class Post(Page):
     ]
 
     parent_page_types = [Category]
+
+    # these two might need to be deleted
+    class IntroToTeaPage(Page):
+        parent_page_types = [HomePage, "Category"]
+
+    class ReceipesPage(Page):
+        max_count = 1
+        parent_page_types = [HomePage, "Category"]
