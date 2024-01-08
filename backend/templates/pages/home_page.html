@@ -1,7 +1,9 @@
 {% extends "_base.html" %}
 {% block title %}
-    Home for doggos
+    {{ page.title }} | {{ site.site_name }}
 {% endblock title %}
 {% block content %}
     <div class="content">Content</div>
+    {% load wagtailcore_tags %}
+    {% include_block page.layout %}
 {% endblock content %}

@@ -1,0 +1,17 @@
+{% load wagtailimages_tags %}
+<h2>
+    {% if self.heading %}
+        {{ self.heading }}
+    {% else %}
+        {{ self.category.title }}
+    {% endif %}
+</h2>
+{% for featured in self.category.featured.all %}
+    <div>
+        <h3>{{ featured.post.title }}</h3>
+        {% comment %} https://docs.wagtail.org/en/stable/topics/images.html {% endcomment %}
+        {% image featured.preview_image fill-200x200 %}
+        {% comment %} {% image featured.preview_image fill-300x200 as img %}
+        <img src="{{ img.url }}" alt="{{ img.alt }}"> {% endcomment %}
+    </div>
+{% endfor %}
