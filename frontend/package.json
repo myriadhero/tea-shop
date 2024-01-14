@@ -1,0 +1,14 @@
+{
+  "name": "tea-shop",
+  "version": "1.0.0",
+  "description": "Install the latest stable Python from [Download Python](https://www.python.org/downloads/). Versions 3.11._ and 3.12._ should work fine. Make sure to add it to the Path during one of the install steps. Check that the installed version is active by running:",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bootstrap": "^5.3.2"
+  }
+}

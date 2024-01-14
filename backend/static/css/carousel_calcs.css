@@ -28,6 +28,7 @@
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     grid-gap: 5px;
+    align-content: center;
   }
   
   .logo_and_nav > * {
@@ -66,6 +67,7 @@
     width: 100%;
     height: 100%;
     grid-column: 2/-1;
+
   }
   
   /* end: layout of the child grid*/
@@ -79,9 +81,12 @@
   /* end: different pages*/
 
 /* start: main nav style*/
-  .main_nav_bar{
+/* bootstrap might not need it*/
+/*  .main_nav_bar{
     display: flex;
     justify-content: space-evenly;
-  }
+  }*/
+
 
 /* end: main nav style*/
+
