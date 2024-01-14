@@ -4,10 +4,10 @@ from modelcluster.fields import ParentalKey
 from pages.models import HomePage
 from taggit.models import ItemBase, TagBase
 from wagtail import blocks
-from wagtail.admin.panels import FieldPanel
+from wagtail.admin.panels import FieldPanel, InlinePanel
 from wagtail.fields import StreamField
 from wagtail.images.blocks import ImageChooserBlock
-from wagtail.models import Page
+from wagtail.models import Orderable, Page
 
 
 class ContentTag(TagBase):
@@ -33,6 +33,10 @@ class TaggedWithContentTags(ItemBase):
 
 class Category(Page):
     parent_page_types = [HomePage, "Category"]
+
+    content_panels = Page.content_panels + [
+        InlinePanel("featured", label="Featured Posts"),
+    ]
 
 
 class Post(Page):
@@ -67,3 +71,19 @@ class Post(Page):
     class ReceipesPage(Page):
         max_count = 1
         parent_page_types = [HomePage, "Category"]
+
+class FeaturedPost(Orderable):
+    category = ParentalKey(Category, on_delete=models.CASCADE, related_name="featured")
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="+")
+    preview_image = models.ForeignKey(
+        "wagtailimages.Image",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+        help_text="This image can be different from any images in the post.",
+    )
+    panels = [
+        FieldPanel("post"),
+        FieldPanel("preview_image"),
+    ]
