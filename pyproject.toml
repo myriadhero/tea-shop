@@ -1,0 +1,5 @@
+[tool.ruff]
+extend-exclude = ["migrations"]
+extend-select = ["A", "B", "C4", "C90", "COM", "DJ", "I", "LOG", "N", "PTH", "RUF", "SIM", "W"]
+line-length = 119
+target-version = "py312"
