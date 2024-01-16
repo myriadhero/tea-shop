@@ -6,7 +6,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>
             {% block title %}
-                Tea for doggos
+                {{ settings.pages.SiteIdentity.site_title }}
             {% endblock title %}
         </title>
         {% block header_include %}
@@ -28,7 +28,7 @@
                 <!--Different page have different content-->
             {% endblock content %}
             <footer>
-                Footer
+                {{ settings.pages.SiteIdentity.footer }}
             </footer>
         </div>
     </body>
