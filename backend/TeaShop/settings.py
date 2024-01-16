@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+from importlib.util import find_spec
 from pathlib import Path
 
 import environ
@@ -67,6 +68,7 @@ INSTALLED_APPS = [
     "djmoney",
     "wagtail.contrib.forms",
     "wagtail.contrib.redirects",
+    "wagtail.contrib.settings",
     "wagtail.embeds",
     "wagtail.sites",
     "wagtail.users",
@@ -81,16 +83,12 @@ INSTALLED_APPS = [
     "modelcluster",
     "taggit",
 ]
-if DEBUG:
-    try:
-        import debug_toolbar
+if DEBUG and find_spec("debug_toolbar"):
+    INSTALLED_APPS.append("debug_toolbar")
+    import mimetypes
 
-        INSTALLED_APPS.append("debug_toolbar")
-        import mimetypes
+    mimetypes.add_type("application/javascript", ".js", True)
 
-        mimetypes.add_type("application/javascript", ".js", True)
-    except ImportError:
-        pass
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -134,7 +132,7 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": BASE_DIR / "db.sqlite3",
-    }
+    },
 }
 
 AUTH_USER_MODEL = "accounts.CustomUser"
