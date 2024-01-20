@@ -4,11 +4,15 @@
   "description": "Install the latest stable Python from [Download Python](https://www.python.org/downloads/). Versions 3.11._ and 3.12._ should work fine. Make sure to add it to the Path during one of the install steps. Check that the installed version is active by running:",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "css-build": "sass  sass/site_styles_with_bootstrap.scss ../backend/static/css/site_styles_with_bootstrap.css",
+    "css-watch": "npm run css-build -- --watch",
+    "start": "npm run css-watch"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "bootstrap": "^5.3.2"
+    "bootstrap": "^5.3.2",
+    "sass": "^1.69.7"
   }
 }

@@ -28,12 +28,10 @@
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     grid-gap: 5px;
-    align-content: center;
+    align-content:end;
   }
   
-  .logo_and_nav > * {
-    background: rgba(202, 202, 232, 0.567);
-  }
+  
   
   /*   end: second row is a grid  nested in the parent grid  */
   
@@ -90,3 +88,6 @@
 
 /* end: main nav style*/
 
+.navbar {
+  background: transparent;
+}
