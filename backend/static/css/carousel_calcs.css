@@ -91,3 +91,21 @@
 .navbar {
   background: transparent;
 }
+
+
+
+/* ============ desktop view ============ */
+/*
+@media all and (min-width: 992px) {
+}
+*/
+/* ============ desktop view .end// ============ */
+
+/* ============ small devices ============ */
+@media (max-width: 991px) {
+  .dropdown-submenu {
+    padding:0;
+    margin:0;
+  }
+}	
+/* ============ small devices .end// ============ */
