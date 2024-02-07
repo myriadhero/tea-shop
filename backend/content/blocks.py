@@ -45,7 +45,7 @@ class PageOrUrlBlock(blocks.StructBlock):
     class Meta:
         icon = "link"
         label = "Page or URL"
-        # template = "content/blocks/page_or_url_block.html"
+        template = "content/blocks/page_or_url_block.html"
 
 
 class PageCarouselBlock(blocks.StructBlock):
@@ -55,4 +55,4 @@ class PageCarouselBlock(blocks.StructBlock):
     class Meta:
         icon = "image"
         label = "Page Carousel"
-        # template = "content/blocks/page_carousel_block.html"
+        template = "content/blocks/page_carousel_block.html"

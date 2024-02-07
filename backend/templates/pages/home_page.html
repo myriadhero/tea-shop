@@ -3,7 +3,8 @@
     {{ page.title }} | {{ site.site_name }}
 {% endblock title %}
 {% block content %}
-    <div class="content">Content</div>
-    {% load wagtailcore_tags %}
-    {% include_block page.layout %}
+    <div class="content">
+        {% load wagtailcore_tags %}
+        {% include_block page.layout %}
+    </div>
 {% endblock content %}
