@@ -14,7 +14,6 @@
     max-height: 100%;
     overflow-x:scroll;
     overflow-y:scroll;
-  }
   
   /*   start: container is a grid    */
   .main_container {
@@ -212,13 +211,7 @@
   transform: translateX(0);
 }
 
-.carousel {
-  margin: 1.5rem;
-}
-.carousel-inner {
-  
-  height: auto;
-}
+
 /* =============carousel style ends===================== */
 
 
