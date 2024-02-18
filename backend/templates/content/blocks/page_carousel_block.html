@@ -1,35 +1,20 @@
 {% load wagtailcore_tags wagtailimages_tags wagtailembeds_tags %}
-
-<div class="container-fluid">
-  <div class="row justify-content-center">   
-      <div id="pageCarousel" class="carousel-dark carousel slide" data-bs-ride="carousel" data-ride="carousel" data-bs-wrap="false">     
-        <div class="carousel-inner" role="listbox">
-
-          {% for carousel_item in self.carousel_items %}
-            {% image carousel_item.image fill-300x200 as img %}
-            <div class="carousel-item {% if forloop.first %}active{% endif %}">
-              <div class="col-lg-3 col-md-4 col-12">
-                <div class="card mx-auto h-100" style="width: 220px;">    
-                    <img src="{{ img.url }}"  alt="{{ img.alt }}">
-                    <div class="card-body">
-                      <h5 class="card-title">{{ carousel_item.title }}</h5>
-                      <p class="card-text">{{ carousel_item.text }} </p>
-                      <a href="#" class="btn btn-primary">Go Somewhere</a>
-                    </div>           
-                </div>
-              </div>
-            </div> 
-            {% endfor %}
-          
+<div class="slide-container">
+  <div class="swiper mySwiper">
+    <div class="card-wrapper swiper-wrapper">
+      {% for carousel_item in self.carousel_items %}
+      {% image carousel_item.image fill-300x200 as img %}
+        <div class="card swiper-slide">
+          <img src="{{ img.url }}"  alt="{{ img.alt }}">
+          <div class="card-body">
+            <h5 class="card-title">{{ carousel_item.title }}</h5>
+            <p class="card-text">{{ carousel_item.text }} </p>
+            <a href="#" class="btn btn-primary">Go Somewhere</a>
+          </div>  
         </div>
-        <button class="carousel-control-prev" type="button" data-bs-target="#pageCarousel" data-bs-slide="prev">
-          <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-          <span class="visually-hidden">Previous</span>
-        </button>
-        <button class="carousel-control-next" type="button" data-bs-target="#pageCarousel" data-bs-slide="next">
-          <span class="carousel-control-next-icon" aria-hidden="true"></span>
-          <span class="visually-hidden">Next</span>
-        </button>
-      </div>
+      {% endfor %}
+    </div>
+    <div class="swiper-button-next"></div>
+    <div class="swiper-button-prev"></div>
   </div>
 </div>
