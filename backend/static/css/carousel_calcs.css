@@ -1,9 +1,17 @@
+/*css reset, removes the default 8px margin of body*/
+  * { 
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  } 
+  
   
   html { 
     margin: 0;
     padding: 0;
-    height: 100%;
+  
     position: relative;
+    height: 100%;
 	}
   
   body {
@@ -12,23 +20,30 @@
     text-align: center;
     margin: 0;
     padding: 0;
-    height: 100%;
-    max-height: 100%;
+    /*
+     height 100% reference to the parent
+     while html height 100%, it references to the full viewport and won't grow 
+     as the content extends.
+    */
+    /*set min height as 100% to make body has an initial height as the html and would grow with the content*/
+    min-height: 100%;
   }
   
   /*   start: container is a grid    */
   .main_container {
-    display: grid;
-    grid-template-rows: repeat(8, minmax(100px, auto));
-    
+    /*flex also works*/
+    /*display: flex;
+    flex-direction: column;*/
+        
+    display:grid;
+    /*remove grid template rows and now the row height grows as the content expands*/
     grid-gap: 10px;
     margin:0;
     padding:0;
     background-color:white;
     width:100%;
-    height:100%;
+    height: 100%;
     /*!!!It is important to prevent css grid item expanding*/
-  
   }
  
   .main_container > * {
@@ -45,7 +60,7 @@
   .main_container > :only-child{
     margin:0;
     padding:0;
-    grid-column: 1/-1;
+
   }
 
   /*   end: container is a grid    */
@@ -62,25 +77,24 @@
   }
   
   
-  
   /*   end: second row is a grid  nested in the parent grid  */
   
   /* start: different elements in the grid*/
   
   header {
-    grid-row: 1/2;
+    
     margin:0;
     padding:0;
   }
   
   .logo_and_nav {
-    grid-row: 2/3;
+  
     margin:0;
     padding:0;
   }
   
   .content {
-    grid-row: 3/8;
+    flex:auto;
     margin:0;
     padding:0;
     min-width: 0;
@@ -88,7 +102,7 @@
   }
   
   footer {
-    grid-row: 8/9;
+   
     margin:0;
     padding:0;
   }
@@ -156,7 +170,6 @@
 
 /*might need modification*/
 .slide-container{
-
   display: flex;
   flex-wrap: wrap;
   margin: auto;
