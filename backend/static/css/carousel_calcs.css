@@ -183,6 +183,7 @@
 
 .swiper {
   position:relative;
+  padding:28px;
 }
 
 .swiper {
@@ -206,9 +207,27 @@
   object-fit: cover;
 
 }
+/*https://www.youtube.com/watch?v=JOdpkAJVub0*/
+.swiper-navBtn{
+  color:#000;
+  height:40px;
+  width:40px;
+  background:rgba(225, 228, 242, 0.918);
+  border-radius:50%;
+}
+.swiper-navBtn::before,
+.swiper-navBtn::after {
+  font-size:18px;
+}
 
 /*card not expand boundary now*/
+/*rounded corner*/
 img {
   aspect-ratio: 16/9;
+  border-radius: 10px;
+}
+/*rounded corner*/
+.card {
+  border-radius: 10px;
 }
 

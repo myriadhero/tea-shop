@@ -1,7 +1,9 @@
 var swiper = new Swiper(".mySwiper", {
-  
+
     slidesPerView: 2,
     spaceBetween:30,
+    centerSlide:"true",
+    grabCursor: "true",
     // Responsive breakpoints
     breakpoints: {
         // touch devices

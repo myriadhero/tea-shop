@@ -1,5 +1,5 @@
 {% load wagtailcore_tags wagtailimages_tags wagtailembeds_tags %}
-
+<h3 align="left" href="#">{{ self.heading }}</h3>
 <div class="slide-container">
   <div class="swiper mySwiper">
     <div class="card-wrapper swiper-wrapper">
@@ -15,7 +15,7 @@
         </div>
       {% endfor %}
     </div>
-    <div class="swiper-button-next"></div>
-    <div class="swiper-button-prev"></div>
+    <div class="swiper-button-next swiper-navBtn"></div>
+    <div class="swiper-button-prev swiper-navBtn"></div>
   </div>
 </div>
