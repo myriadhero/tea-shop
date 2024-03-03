@@ -33,7 +33,7 @@ env = environ.Env(
     DJANGO_URL_PREFIX=(str, None),
     WAGTAIL_ADMIN_PATH=(str, "cms"),
     WAGTAILADMIN_BASE_URL=(str, "http://example.com"),
-    WAGTAIL_SITE_NAME=(str, "DevBlog"),
+    WAGTAIL_SITE_NAME=(str, "TeaShop"),
     DJANGO_TIME_ZONE=(str, "Australia/Sydney"),
 )
 
