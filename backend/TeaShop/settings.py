@@ -18,28 +18,34 @@ import environ
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 env = environ.Env(
-    DEBUG=(bool, False),
-    DJANGO_SECRET_KEY=(
-        str,
-        "django-insecure-w1=ulwq^^v-j^lz!*!oos%!3!aorqr-o0pv*xqbuk2ulbd+s)x",
-    ),
-    STATICFILES_ROOT_DIR=(Path, BASE_DIR / "staticfiles"),
-    MEDIA_ROOT_DIR=(Path, BASE_DIR / "media"),
+    DJANGO_DEBUG=(bool, False),
     DJANGO_ALLOWED_HOSTS=(tuple, ("localhost", "127.0.0.1")),
+    DJANGO_SECRET_KEY=(str),
+    STATICFILES_DIR=(Path, BASE_DIR / "staticfiles"),
+    MEDIAFILES_DIR=(Path, BASE_DIR / "media"),
+    LOGS_DIR=(Path, BASE_DIR / "logs"),
+    POSTGRES_DB_HOST=(str, "localhost"),
+    POSTGRES_DB_PORT=(int, 5432),
+    POSTGRES_DB_NAME=(str, "teashopdb"),
+    POSTGRES_DB_USER=(str, "postgres"),
+    DJANGO_ADMIN_PATH=(str, "admin"),
+    DJANGO_URL_PREFIX=(str, None),
+    WAGTAIL_ADMIN_PATH=(str, "cms"),
+    WAGTAILADMIN_BASE_URL=(str, "http://example.com"),
+    WAGTAIL_SITE_NAME=(str, "DevBlog"),
+    DJANGO_TIME_ZONE=(str, "Australia/Sydney"),
 )
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
+SECRET_KEY = env("DJANGO_SECRET_KEY")
+DEBUG = env("DJANGO_DEBUG")
+ALLOWED_HOSTS = env("DJANGO_ALLOWED_HOSTS")
+FORCE_SCRIPT_NAME = env("DJANGO_URL_PREFIX")
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env.str("DJANGO_SECRET_KEY")
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env.bool("DEBUG")
-
-ALLOWED_HOSTS = env.tuple("DJANGO_ALLOWED_HOSTS")
+if not DEBUG:
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = True
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 if DEBUG:
     INTERNAL_IPS = [
@@ -47,8 +53,9 @@ if DEBUG:
         "127.0.0.1",
     ]
 
-# Application definition
+SITE_ID = 1
 
+# Application definition
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -131,8 +138,12 @@ WSGI_APPLICATION = "TeaShop.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": "django.db.backends.postgresql",
+        "HOST": env("POSTGRES_DB_HOST"),
+        "PORT": env("POSTGRES_DB_PORT"),
+        "NAME": env("POSTGRES_DB_NAME"),
+        "USER": env("POSTGRES_DB_USER"),
+        "PASSWORD": env("POSTGRES_DB_PASSWORD"),
     },
 }
 
@@ -160,29 +171,43 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
-LANGUAGE_CODE = "en-us"
-
-TIME_ZONE = "UTC"
-
+LANGUAGE_CODE = "en-au"
+TIME_ZONE = env("DJANGO_TIME_ZONE")
 USE_I18N = True
-
+USE_L10N = True
 USE_TZ = True
+
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+APPEND_SLASH = True
+WAGTAIL_APPEND_SLASH = True
 
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATICFILES_DIRS = [BASE_DIR / "static"]
+STATICFILES_FINDERS = [
+    "django.contrib.staticfiles.finders.FileSystemFinder",
+    "django.contrib.staticfiles.finders.AppDirectoriesFinder",
+]
+
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
+
+# ManifestStaticFilesStorage is recommended in production, to prevent outdated
+# JavaScript / CSS assets being served from cache (e.g. after a Wagtail upgrade).
+# See https://docs.djangoproject.com/en/5.0/ref/contrib/staticfiles/#manifeststaticfilesstorage
 STATICFILES_STORAGE = (
     "django.contrib.staticfiles.storage.ManifestStaticFilesStorage"
     if not DEBUG
     else "django.contrib.staticfiles.storage.StaticFilesStorage"
 )
-STATIC_URL = "static/"
-STATIC_ROOT = env.path("STATICFILES_ROOT_DIR")
 
-MEDIA_URL = "media/"
-MEDIA_ROOT = env.path("MEDIA_ROOT_DIR")
+STATIC_ROOT = env("STATICFILES_DIR")
+STATIC_URL = f"{FORCE_SCRIPT_NAME or ''}/static/"
+
+MEDIA_ROOT = env("MEDIAFILES_DIR")
+MEDIA_URL = f"{FORCE_SCRIPT_NAME or ''}/media/"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -200,5 +225,39 @@ SESSION_ORDER_TIMEOUT_DAYS = 30
 
 
 # Wagtail settings
-WAGTAIL_SITE_NAME = "Tea Shop"
-WAGTAILADMIN_BASE_URL = "http://localhost:8000"
+WAGTAIL_SITE_NAME = env("WAGTAIL_SITE_NAME")
+WAGTAILADMIN_BASE_URL = env("WAGTAILADMIN_BASE_URL")
+WAGTAIL_ADMIN_PATH = env("WAGTAIL_ADMIN_PATH")
+
+# Search
+# https://docs.wagtail.org/en/stable/topics/search/backends.html
+WAGTAILSEARCH_BACKENDS = {
+    "default": {
+        "BACKEND": "wagtail.search.backends.database",
+    },
+}
+
+ADMIN_PATH = env("DJANGO_ADMIN_PATH")
+LOGS_DIR = env("LOGS_DIR")
+if not DEBUG:
+    LOGGING = {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "handlers": {
+            "console": {
+                "class": "logging.StreamHandler",
+            },
+            "file": {
+                "level": "INFO",
+                "class": "logging.handlers.RotatingFileHandler",
+                "filename": LOGS_DIR / "django.log",
+                "maxBytes": 1024 * 1024 * 5,  # 5MB
+                "backupCount": 5,  # 5 total files
+                # "formatter": "verbose",
+            },
+        },
+        "root": {
+            "handlers": ["file"],
+            "level": "INFO",
+        },
+    }

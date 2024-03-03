@@ -13,6 +13,8 @@ django-money = "*"
 wagtail = "*"
 wagtailmenus = "*"
 wagtail-modeladmin = "*"
+psycopg = {extras = ["binary"], version = "*"}
+gunicorn = "*"
 
 [dev-packages]
 django-debug-toolbar = "*"

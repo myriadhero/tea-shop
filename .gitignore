@@ -13,5 +13,4 @@ raw-data*.json
 .env.*
 *.crt
 *.key
-/nginx/*.conf
 *.log

@@ -1,0 +1,89 @@
+version: '3'
+services:
+  db-dev:
+    image: postgres:latest
+    environment:
+      - POSTGRES_USER=${POSTGRES_DB_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_DB_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB_NAME}
+    profiles:
+      - dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+  db:
+    restart: always
+    image: postgres:latest
+    environment:
+      - POSTGRES_USER=${POSTGRES_DB_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_DB_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB_NAME}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    profiles:
+      - prod
+  web:
+    restart: always
+    build:
+      args:
+        - CODE_DIR=${DOCKER_CODE_DIR}
+    volumes:
+      - static_volume:${DOCKER_CODE_DIR}/staticfiles
+      - media_volume:${DOCKER_CODE_DIR}/mediafiles
+      - django_logs:${DOCKER_CODE_DIR}/logs
+    depends_on:
+      - db
+    command: gunicorn DevBlog.wsgi:application --bind 0.0.0.0:8000
+    # command: tail -f /dev/null
+    env_file:
+      - .env
+    profiles:
+      - prod
+    # healthcheck:
+    #   test:
+    #     [
+    #       "CMD",
+    #       "wget",
+    #       "--spider",
+    #       "-q",
+    #       "http://localhost:8000/healthcheck/"
+    #     ]
+    #   interval: 5m
+    #   start_period: 2m
+  nginx:
+    restart: always
+    build: 
+      context: ./nginx
+      args:
+        - HOSTNAME=${DJ_NGINX_HOSTNAME}
+    ports:
+      - ${HOST_PORT}:8080
+    depends_on:
+      - web
+    volumes:
+      - static_volume:/home/django/staticfiles
+      - media_volume:/home/django/mediafiles
+    profiles:
+      - prod
+  # web-dev:
+  #   build:
+  #     dockerfile: Dockerfile.dev
+  #     args:
+  #       - CODE_DIR=${DOCKER_CODE_DIR}
+  #   command: python manage.py runserver 0.0.0.0:8000
+  #   env_file:
+  #     - .env
+  #   volumes:
+  #     - ./backend/:${DOCKER_CODE_DIR}/app/
+  #   ports:
+  #     - ${HOST_PORT}:8000
+  #   profiles:
+  #     - dev
+  #   depends_on:
+  #     - db
+volumes:
+  static_volume:
+  media_volume:
+  django_logs:
+  db-data:
