@@ -32,11 +32,22 @@ class TaggedWithContentTags(ItemBase):
 
 
 class Category(Page):
-    parent_page_types = [HomePage, "Category"]
+    parent_page_types = (HomePage, "Category")
 
-    content_panels = Page.content_panels + [
+    body = StreamField(
+        [
+            ("rich_text", blocks.RichTextBlock()),
+            ("image", ImageChooserBlock()),
+        ],
+        use_json_field=True,
+        blank=True,
+    )
+
+    content_panels = (
+        *Page.content_panels,
+        FieldPanel("body"),
         InlinePanel("featured", label="Featured Posts"),
-    ]
+    )
 
 
 class Post(Page):
@@ -54,15 +65,17 @@ class Post(Page):
         use_json_field=True,
     )
 
-    content_panels = Page.content_panels + [
+    content_panels = (
+        *Page.content_panels,
         FieldPanel("body"),
-    ]
+    )
 
-    promote_panels = Page.promote_panels + [
+    promote_panels = (
+        Page.promote_panels,
         FieldPanel("tags"),
-    ]
+    )
 
-    parent_page_types = [Category]
+    parent_page_types = (Category,)
 
 
 class FeaturedPost(Orderable):
@@ -76,7 +89,7 @@ class FeaturedPost(Orderable):
         related_name="+",
         help_text="This image can be different from any images in the post.",
     )
-    panels = [
+    panels = (
         FieldPanel("post"),
         FieldPanel("preview_image"),
-    ]
+    )
