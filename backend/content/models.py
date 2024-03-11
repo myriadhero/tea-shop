@@ -71,7 +71,7 @@ class Post(Page):
     )
 
     promote_panels = (
-        Page.promote_panels,
+        *Page.promote_panels,
         FieldPanel("tags"),
     )
 
