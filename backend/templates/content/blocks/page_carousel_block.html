@@ -1,7 +1,11 @@
 {% load wagtailcore_tags wagtailimages_tags wagtailembeds_tags %}
-<h3 align="left" href="#">{{ self.heading }}</h3>
+
 <div class="slide-container">
+  
   <div class="swiper mySwiper">
+    <div class="swiper-header">
+      <h4 >Category Title: {{ self.heading }}</h4>
+    </div>   
     <div class="card-wrapper swiper-wrapper">
       {% for carousel_item in self.carousel_items %}
       {% image carousel_item.image fill-300x200 as img %}

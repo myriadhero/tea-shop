@@ -220,6 +220,23 @@
   font-size:18px;
 }
 
+/*swiper position*/
+/*https://open-code.tech/en/post-1823/*/
+.mySwiper .swiper-pagination-bullets{
+  bottom: -5px;
+}
+/* might modify later
+.swiper-pagination-bullet {
+  background-color: red;
+}
+*/
+.swiper-pagination-bullet-active {
+  background-color: rgb(60, 44, 44);
+}
+
+.swiper-header{
+  margin-bottom: 20px;
+}
 /*card not expand boundary now*/
 /*rounded corner*/
 img {
